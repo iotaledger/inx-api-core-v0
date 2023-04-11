@@ -86,7 +86,7 @@ func run() error {
 			advertisedAddress = deps.RestAPIAdvertiseAddress
 		}
 
-		if err := deps.NodeBridge.RegisterAPIRoute(ctxRegister, APIRoute, advertisedAddress); err != nil {
+		if err := deps.NodeBridge.RegisterAPIRoute(ctxRegister, APIRoute, advertisedAddress, server.APIRoute); err != nil {
 			Plugin.LogErrorfAndExit("Registering INX api route failed: %s", err)
 		}
 		cancelRegister()

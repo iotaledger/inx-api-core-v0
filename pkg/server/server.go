@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	APIRoute = ""
+	APIRoute = "/api/core/v0"
 )
 
 type DatabaseServer struct {
