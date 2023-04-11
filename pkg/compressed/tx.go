@@ -74,10 +74,14 @@ func TransactionFromCompressedBytes(transactionData []byte, txHash ...trinary.Ha
 
 	if tx.Value != 0 {
 		// Additional checks
-		if txDataTrits[consts.AddressTrinaryOffset+consts.AddressTrinarySize-1] != 0 {
-			// The last trit is always zero because of KERL/keccak
-			return nil, consts.ErrInvalidAddress
-		}
+
+		// we don't need to check for the last trit in read-only mode.
+		// there might be addresses that are generated with CURL
+		//
+		// if txDataTrits[consts.AddressTrinaryOffset+consts.AddressTrinarySize-1] != 0 {
+		// 	// The last trit is always zero because of KERL/keccak
+		// 	return nil, consts.ErrInvalidAddress
+		// }
 
 		if math.AbsInt64(tx.Value) > consts.TotalSupply {
 			return nil, consts.ErrInsufficientBalance
