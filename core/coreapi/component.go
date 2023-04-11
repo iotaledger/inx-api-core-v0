@@ -3,6 +3,7 @@ package coreapi
 import (
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"time"
 
@@ -96,6 +97,12 @@ func run() error {
 			deps.Database,
 			ParamsRestAPI.Limits.MaxResults,
 		)
+
+		deps.Echo.Server.BaseContext = func(l net.Listener) context.Context {
+			// set BaseContext to be the same as the worker,
+			// so that requests being processed don't hang the shutdown procedure
+			return ctx
+		}
 
 		go func() {
 			CoreComponent.LogInfof("You can now access the API using: http://%s", ParamsRestAPI.BindAddress)
