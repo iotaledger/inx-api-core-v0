@@ -44,6 +44,8 @@ const (
 	MetadataInvalidPastCone      = 7
 )
 
+type Bundles []*Bundle
+
 type Bundle struct {
 	db *Database
 
@@ -150,6 +152,10 @@ func (bundle *Bundle) IsValueSpam() bool {
 	return bundle.metadata.HasBit(MetadataIsValueSpam)
 }
 
+func (bundle *Bundle) IsMilestone() bool {
+	return bundle.metadata.HasBit(MetadataIsMilestone)
+}
+
 func (bundle *Bundle) MilestoneIndex() milestone.Index {
 	bundle.milestoneIndexOnce.Do(func() {
 		tailTx := bundle.Tail()
@@ -190,4 +196,25 @@ func (db *Database) BundleOrNil(tailTxHash hornet.Hash) *Bundle {
 	}
 
 	return bundle
+}
+
+// Bundles returns all existing bundle instances for that bundle hash.
+func (db *Database) Bundles(bundleHash hornet.Hash, maxFind ...int) Bundles {
+
+	//nolint:prealloc
+	var bundles Bundles
+	for _, txTailHash := range db.BundleTailTransactionHashes(bundleHash, maxFind...) {
+		bndl := db.BundleOrNil(txTailHash) // bundle +1
+		if bndl == nil {
+			continue
+		}
+
+		bundles = append(bundles, bndl)
+	}
+
+	if len(bundles) == 0 {
+		return nil
+	}
+
+	return bundles
 }

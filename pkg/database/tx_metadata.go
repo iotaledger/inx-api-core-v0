@@ -66,6 +66,10 @@ func (m *TransactionMetadata) IsTail() bool {
 	return m.metadata.HasBit(TransactionMetadataIsTail)
 }
 
+func (m *TransactionMetadata) IsSolid() bool {
+	return m.metadata.HasBit(TransactionMetadataSolid)
+}
+
 func (m *TransactionMetadata) IsConfirmed() bool {
 	return m.metadata.HasBit(TransactionMetadataConfirmed)
 }

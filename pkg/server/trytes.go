@@ -52,6 +52,20 @@ func (s *DatabaseServer) rpcGetTrytes(c echo.Context) (interface{}, error) {
 	}, nil
 }
 
+func (s *DatabaseServer) transaction(c echo.Context) (interface{}, error) {
+	txHash, err := parseTransactionHashParam(c)
+	if err != nil {
+		return nil, err
+	}
+
+	tx := s.Database.TransactionOrNil(txHash)
+	if tx == nil {
+		return nil, errors.WithMessagef(echo.ErrNotFound, "transaction not found: %s", txHash.Trytes())
+	}
+
+	return tx.Tx, nil
+}
+
 func (s *DatabaseServer) transactionTrytes(c echo.Context) (interface{}, error) {
 	txHash, err := parseTransactionHashParam(c)
 	if err != nil {
@@ -68,7 +82,7 @@ func (s *DatabaseServer) transactionTrytes(c echo.Context) (interface{}, error) 
 		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
 	}
 
-	return &trytesResponse{
+	return &transactionTrytesResponse{
 		TxHash: txHash.Trytes(),
 		Trytes: txTrytes,
 	}, nil

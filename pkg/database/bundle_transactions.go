@@ -35,3 +35,22 @@ func (db *Database) BundleTransactionHashes(bundleHash hornet.Hash, maxFind ...i
 
 	return bundleTransactionHashes
 }
+
+// bundleTx +1.
+func (db *Database) BundleTailTransactionHashes(bundleHash hornet.Hash, maxFind ...int) hornet.Hashes {
+	var bundleTransactionHashes hornet.Hashes
+
+	i := 0
+	_ = db.bundleTransactionsStore.IterateKeys(append(databaseKeyPrefixForBundleHash(bundleHash), BundleTxIsTail), func(key []byte) bool {
+		i++
+		if (len(maxFind) > 0) && (i > maxFind[0]) {
+			return false
+		}
+
+		bundleTransactionHashes = append(bundleTransactionHashes, key[50:99])
+
+		return true
+	})
+
+	return bundleTransactionHashes
+}

@@ -8,6 +8,7 @@ import (
 	"github.com/iotaledger/iota.go/guards"
 
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
+	"github.com/iotaledger/inx-api-core-v0/pkg/milestone"
 )
 
 func (s *DatabaseServer) rpcGetInclusionStates(c echo.Context) (interface{}, error) {
@@ -44,7 +45,7 @@ func (s *DatabaseServer) rpcGetInclusionStates(c echo.Context) (interface{}, err
 	}, nil
 }
 
-func (s *DatabaseServer) transactionInclusionState(c echo.Context) (interface{}, error) {
+func (s *DatabaseServer) transactionMetadata(c echo.Context) (interface{}, error) {
 	txHash, err := parseTransactionHashParam(c)
 	if err != nil {
 		return nil, err
@@ -54,21 +55,46 @@ func (s *DatabaseServer) transactionInclusionState(c echo.Context) (interface{},
 	txMeta := s.Database.TxMetadataOrNil(txHash)
 	if txMeta == nil {
 		// if tx is unknown, return false
-		return &transactionInclusionStateResponse{
+		return &transactionMetadataResponse{
 			TxHash:      txHash.Trytes(),
+			Solid:       false,
 			Included:    false,
 			Confirmed:   false,
 			Conflicting: false,
-			LedgerIndex: s.Database.GetLedgerIndex(),
+			LedgerIndex: s.Database.LedgerIndex(),
 		}, nil
 	}
 
-	return &transactionInclusionStateResponse{
-		TxHash: txHash.Trytes(),
-		// avoid passing true for conflicting tx to be backwards compatible
-		Included:    txMeta.IsConfirmed() && !txMeta.IsConflicting(),
-		Confirmed:   txMeta.IsConfirmed(),
-		Conflicting: txMeta.IsConflicting(),
-		LedgerIndex: s.Database.GetLedgerIndex(),
+	var milestoneIndex milestone.Index
+	bundles := s.Database.Bundles(txMeta.BundleHash())
+	for _, bundle := range bundles {
+		if bundle.IsMilestone() {
+			milestoneIndex = bundle.MilestoneIndex()
+			break
+		}
+	}
+
+	var referencedByMilestoneIndex milestone.Index
+	var milestoneTimestampReferenced uint64
+	confirmed, at := txMeta.ConfirmedWithIndex()
+	if confirmed {
+		referencedByMilestoneIndex = at
+
+		timestamp, err := s.Database.MilestoneTimestamp(referencedByMilestoneIndex)
+		if err == nil {
+			milestoneTimestampReferenced = timestamp
+		}
+	}
+
+	return &transactionMetadataResponse{
+		TxHash:                       txHash.Trytes(),
+		Solid:                        txMeta.IsSolid(),
+		Included:                     confirmed && !txMeta.IsConflicting(), // avoid passing true for conflicting tx to be backwards compatible
+		Confirmed:                    confirmed,
+		Conflicting:                  txMeta.IsConflicting(),
+		ReferencedByMilestoneIndex:   referencedByMilestoneIndex,
+		MilestoneTimestampReferenced: milestoneTimestampReferenced,
+		MilestoneIndex:               milestoneIndex,
+		LedgerIndex:                  s.Database.LedgerIndex(),
 	}, nil
 }

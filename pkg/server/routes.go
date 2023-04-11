@@ -32,19 +32,27 @@ const (
 	// GET returns the node info.
 	RouteInfo = "/info"
 
+	// RouteMilestoneByIndex is the route for getting a milestone by its milestoneIndex.
+	// GET will return the milestone.
+	RouteMilestoneByIndex = "/milestones/by-index/:" + ParameterMilestoneIndex
+
 	// RouteTransactions is the route for getting transactions filtered by the given parameters.
 	// GET with query parameter returns all txHashes that fit these filter criteria.
 	// Query parameters: "bundle", "address", "tag", "approvee", "maxResults"
 	// Returns an empty list if no results are found.
 	RouteTransactions = "/transactions" // former findTransactions
 
+	// RouteTransaction is the route for getting a transaction.
+	// GET will return the transaction.
+	RouteTransaction = "/transactions/:" + ParameterTransactionHash
+
 	// RouteTransactionTrytes is the route for getting the trytes of a transaction.
 	// GET will return the transaction trytes.
 	RouteTransactionTrytes = "/transactions/:" + ParameterTransactionHash + "/trytes" // former getTrytes
 
-	// RouteTransactionInclusionState is the route for getting the inclusion state of a transaction.
-	// GET will return the inclusion state.
-	RouteTransactionInclusionState = "/transactions/:" + ParameterTransactionHash + "/inclusion-state" // former getInclusionStates
+	// RouteTransactionMetadata is the route for getting the metadata of a transaction.
+	// GET will return the metadata.
+	RouteTransactionMetadata = "/transactions/:" + ParameterTransactionHash + "/metadata" // former getInclusionStates
 
 	// RouteAddressBalance is the route for getting the balance of an address.
 	// GET will return the balance.
@@ -111,6 +119,18 @@ func (s *DatabaseServer) configureRoutes(routeGroup echoswagger.ApiGroup) {
 		SetDescription("the route for getting the node info").
 		SetOperationId("info")
 
+	routeGroup.GET(RouteMilestoneByIndex, func(c echo.Context) error {
+		resp, err := s.milestone(c)
+		if err != nil {
+			return err
+		}
+
+		return httpserver.JSONResponse(c, http.StatusOK, resp)
+	}).
+		SetDescription("the route for getting a milestone").
+		SetOperationId("milestone").
+		AddParamPath("", ParameterMilestoneIndex, "the index of the milestone")
+
 	routeGroup.GET(RouteTransactions, func(c echo.Context) error {
 		resp, err := s.transactions(c)
 		if err != nil {
@@ -127,6 +147,18 @@ func (s *DatabaseServer) configureRoutes(routeGroup echoswagger.ApiGroup) {
 		AddParamQuery("", QueryParameterApprovee, "filter for transactions with a specific approvee hash", false).
 		AddParamQuery("", QueryParameterMaxResults, "limit the maximum number of results", false)
 
+	routeGroup.GET(RouteTransaction, func(c echo.Context) error {
+		resp, err := s.transaction(c)
+		if err != nil {
+			return err
+		}
+
+		return httpserver.JSONResponse(c, http.StatusOK, resp)
+	}).
+		SetDescription("the route for getting a transaction").
+		SetOperationId("transaction").
+		AddParamPath("", ParameterTransactionHash, "the hash of the transaction")
+
 	routeGroup.GET(RouteTransactionTrytes, func(c echo.Context) error {
 		resp, err := s.transactionTrytes(c)
 		if err != nil {
@@ -139,8 +171,8 @@ func (s *DatabaseServer) configureRoutes(routeGroup echoswagger.ApiGroup) {
 		SetOperationId("transactionTrytes").
 		AddParamPath("", ParameterTransactionHash, "the hash of the transaction")
 
-	routeGroup.GET(RouteTransactionInclusionState, func(c echo.Context) error {
-		resp, err := s.transactionInclusionState(c)
+	routeGroup.GET(RouteTransactionMetadata, func(c echo.Context) error {
+		resp, err := s.transactionMetadata(c)
 		if err != nil {
 			return err
 		}

@@ -25,6 +25,13 @@ type infoResponse struct {
 	CoordinatorAddress                 trinary.Hash    `json:"coordinatorAddress"`
 }
 
+// milestoneResponse struct.
+type milestoneResponse struct {
+	MilestoneIndex     milestone.Index `json:"milestoneIndex"`
+	MilestoneHash      trinary.Hash    `json:"milestoneHash"`
+	MilestoneTimestamp uint64          `json:"milestoneTimestamp"` // The milestone timestamp this transaction was referenced.
+}
+
 // transactionsResponse struct.
 type transactionsResponse struct {
 	Bundle            trinary.Hash    `json:"bundle,omitempty"`
@@ -35,19 +42,23 @@ type transactionsResponse struct {
 	LedgerIndex       milestone.Index `json:"ledgerIndex"`
 }
 
-// trytesResponse struct.
-type trytesResponse struct {
+// transactionTrytesResponse struct.
+type transactionTrytesResponse struct {
 	TxHash trinary.Hash   `json:"txHash"`
 	Trytes trinary.Trytes `json:"trytes"`
 }
 
-// transactionInclusionStateResponse struct.
-type transactionInclusionStateResponse struct {
-	TxHash      trinary.Hash    `json:"txHash"`
-	Included    bool            `json:"included"`
-	Confirmed   bool            `json:"confirmed"`
-	Conflicting bool            `json:"conflicting"`
-	LedgerIndex milestone.Index `json:"ledgerIndex"`
+// transactionMetadataResponse struct.
+type transactionMetadataResponse struct {
+	TxHash                       trinary.Hash    `json:"txHash"`
+	Solid                        bool            `json:"isSolid"`
+	Included                     bool            `json:"included"`
+	Confirmed                    bool            `json:"confirmed"`
+	Conflicting                  bool            `json:"conflicting"`
+	ReferencedByMilestoneIndex   milestone.Index `json:"referencedByMilestoneIndex,omitempty"` // The milestone index that references this block.
+	MilestoneTimestampReferenced uint64          `json:"milestoneTimestampReferenced"`         // The milestone timestamp this transaction was referenced.
+	MilestoneIndex               milestone.Index `json:"milestoneIndex,omitempty"`             // If this block represents a milestone this is the milestone index
+	LedgerIndex                  milestone.Index `json:"ledgerIndex"`
 }
 
 // addressWasSpentResponse struct.
