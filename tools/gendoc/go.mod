@@ -43,7 +43,7 @@ require (
 	github.com/iotaledger/grocksdb v1.7.5-0.20230220105546-5162e18885c7 // indirect
 	github.com/iotaledger/hive.go/constraints v0.0.0-20230411104612-2f6b2cb26cf1 // indirect
 	github.com/iotaledger/hive.go/ds v0.0.0-20230411104612-2f6b2cb26cf1 // indirect
-	github.com/iotaledger/hive.go/kvstore v0.0.0-20230411185401-29a82c08f271 // indirect
+	github.com/iotaledger/hive.go/kvstore v0.0.0-20230411194733-5c1053500317 // indirect
 	github.com/iotaledger/hive.go/lo v0.0.0-20230411104612-2f6b2cb26cf1 // indirect
 	github.com/iotaledger/hive.go/logger v0.0.0-20230306152651-c96d32e6baec // indirect
 	github.com/iotaledger/hive.go/runtime v0.0.0-20230411104612-2f6b2cb26cf1 // indirect

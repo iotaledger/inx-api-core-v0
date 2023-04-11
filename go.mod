@@ -7,7 +7,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/iotaledger/hive.go/app v0.0.0-20230306152651-c96d32e6baec
 	github.com/iotaledger/hive.go/ds v0.0.0-20230411104612-2f6b2cb26cf1
-	github.com/iotaledger/hive.go/kvstore v0.0.0-20230411185401-29a82c08f271
+	github.com/iotaledger/hive.go/kvstore v0.0.0-20230411194733-5c1053500317
 	github.com/iotaledger/hive.go/lo v0.0.0-20230411104612-2f6b2cb26cf1
 	github.com/iotaledger/hive.go/runtime v0.0.0-20230411104612-2f6b2cb26cf1
 	github.com/iotaledger/hive.go/serializer/v2 v2.0.0-rc.1.0.20230411094451-3a6bd8040e05

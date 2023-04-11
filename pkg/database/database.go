@@ -145,43 +145,22 @@ func New(tangleDatabase, snapshotDatabase, spentDatabase kvstore.KVStore, skipHe
 		return nil, err
 	}
 
-	// delete unused prefixes
-	for _, prefix := range []byte{StorePrefixUnconfirmedTransactions, StorePrefixAutopeering, StorePrefixWhiteFlag} {
-		if err := tangleDatabase.DeletePrefix(kvstore.KeyPrefix{prefix}); err != nil {
-			return nil, err
-		}
-	}
-
 	return db, nil
 }
 
 func (db *Database) CloseDatabases() error {
-	var flushAndCloseError error
-	if err := db.tangleDatabase.Flush(); err != nil {
-		flushAndCloseError = err
-	}
-
+	var closeError error
 	if err := db.tangleDatabase.Close(); err != nil {
-		flushAndCloseError = err
+		closeError = err
 	}
-
-	if err := db.snapshotDatabase.Flush(); err != nil {
-		flushAndCloseError = err
-	}
-
 	if err := db.snapshotDatabase.Close(); err != nil {
-		flushAndCloseError = err
+		closeError = err
 	}
-
-	if err := db.spentDatabase.Flush(); err != nil {
-		flushAndCloseError = err
-	}
-
 	if err := db.spentDatabase.Close(); err != nil {
-		flushAndCloseError = err
+		closeError = err
 	}
 
-	return flushAndCloseError
+	return closeError
 }
 
 type SyncState struct {

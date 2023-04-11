@@ -253,8 +253,8 @@ github.com/iotaledger/hive.go/constraints v0.0.0-20230411104612-2f6b2cb26cf1 h1:
 github.com/iotaledger/hive.go/constraints v0.0.0-20230411104612-2f6b2cb26cf1/go.mod h1:bvXXc6quBdERMMKnirr2+iQU4WnTz4KDbdHcusW9Ats=
 github.com/iotaledger/hive.go/ds v0.0.0-20230411104612-2f6b2cb26cf1 h1:RoWh9evMBIcNtQo+R2ARLSVZTr4gxCdTJSLLDrrnTwg=
 github.com/iotaledger/hive.go/ds v0.0.0-20230411104612-2f6b2cb26cf1/go.mod h1:q57cglgRfX5PUQDNmyBWyD24605cJxkF87YrHHlRkZ4=
-github.com/iotaledger/hive.go/kvstore v0.0.0-20230411185401-29a82c08f271 h1:Zb+I2NxGfY5bg0qs5/5/rJ1N4kp8urrsf7PINHJBVFM=
-github.com/iotaledger/hive.go/kvstore v0.0.0-20230411185401-29a82c08f271/go.mod h1:PVFDmdGYGPsV24Vvdrp8mNXnWbE4Gos+eUVpC0FL4GM=
+github.com/iotaledger/hive.go/kvstore v0.0.0-20230411194733-5c1053500317 h1:3l5nzKioejSxrKRTUkCeT2WoEQmPFX1Vlkqe6cv1z54=
+github.com/iotaledger/hive.go/kvstore v0.0.0-20230411194733-5c1053500317/go.mod h1:PVFDmdGYGPsV24Vvdrp8mNXnWbE4Gos+eUVpC0FL4GM=
 github.com/iotaledger/hive.go/lo v0.0.0-20230411104612-2f6b2cb26cf1 h1:w0XReT/MFAt74Dw/2UXP/XH7Xw+qnx7iLBP9oM5RmGQ=
 github.com/iotaledger/hive.go/lo v0.0.0-20230411104612-2f6b2cb26cf1/go.mod h1:uSutXkQsFJQwrSeDNQVSQjB59XRLVKpJhr1afi8nd0g=
 github.com/iotaledger/hive.go/logger v0.0.0-20230306152651-c96d32e6baec h1:AIAsWkL81/MPTuXx8aUuCDa5WL9m7UsFP+4XM96buO8=
