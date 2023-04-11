@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/hive.go/core/app"
+	"github.com/iotaledger/hive.go/app"
 	"github.com/iotaledger/inx-api-core-v0/pkg/daemon"
 	"github.com/iotaledger/inx-api-core-v0/pkg/database"
 	"github.com/iotaledger/inx-api-core-v0/pkg/server"

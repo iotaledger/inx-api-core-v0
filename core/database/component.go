@@ -6,9 +6,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/hive.go/core/app"
-	"github.com/iotaledger/hive.go/core/app/pkg/shutdown"
-	hivedb "github.com/iotaledger/hive.go/core/database"
+	"github.com/iotaledger/hive.go/app"
+	"github.com/iotaledger/hive.go/app/shutdown"
+	hivedb "github.com/iotaledger/hive.go/kvstore/database"
 	"github.com/iotaledger/inx-api-core-v0/pkg/daemon"
 	"github.com/iotaledger/inx-api-core-v0/pkg/database"
 	"github.com/iotaledger/inx-api-core-v0/pkg/database/engine"
@@ -46,6 +46,7 @@ func provide(c *dig.Container) error {
 
 	if err := c.Provide(func() (*database.Database, error) {
 		CoreComponent.LogInfo("Setting up database ...")
+		defer CoreComponent.LogInfo("Setting up database ... done!")
 
 		tangleDatabase, err := engine.StoreWithDefaultSettings(ParamsDatabase.Tangle.Path, false, hivedb.EngineAuto, "tangle.db", engine.AllowedEnginesStorageAuto...)
 		if err != nil {

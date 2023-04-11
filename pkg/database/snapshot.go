@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iotaledger/hive.go/core/bitmask"
+	"github.com/iotaledger/hive.go/ds/bitmask"
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
 	"github.com/iotaledger/inx-api-core-v0/pkg/milestone"
 )

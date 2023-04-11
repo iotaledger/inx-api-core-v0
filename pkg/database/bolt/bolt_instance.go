@@ -6,7 +6,7 @@ import (
 
 	"go.etcd.io/bbolt"
 
-	"github.com/iotaledger/hive.go/core/ioutils"
+	"github.com/iotaledger/hive.go/runtime/ioutils"
 )
 
 func CreateDB(path string, optionalOptions ...*bbolt.Options) (*bbolt.DB, error) {

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"path"
 
-	hivedb "github.com/iotaledger/hive.go/core/database"
-	"github.com/iotaledger/hive.go/core/kvstore"
-	"github.com/iotaledger/hive.go/core/kvstore/pebble"
-	"github.com/iotaledger/hive.go/core/kvstore/rocksdb"
+	"github.com/iotaledger/hive.go/kvstore"
+	hivedb "github.com/iotaledger/hive.go/kvstore/database"
+	"github.com/iotaledger/hive.go/kvstore/pebble"
+	"github.com/iotaledger/hive.go/kvstore/rocksdb"
 	"github.com/iotaledger/inx-api-core-v0/pkg/database/bolt"
 )
 

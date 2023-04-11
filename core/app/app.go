@@ -1,9 +1,9 @@
 package app
 
 import (
-	"github.com/iotaledger/hive.go/core/app"
-	"github.com/iotaledger/hive.go/core/app/core/shutdown"
-	"github.com/iotaledger/hive.go/core/app/plugins/profiling"
+	"github.com/iotaledger/hive.go/app"
+	"github.com/iotaledger/hive.go/app/components/profiling"
+	"github.com/iotaledger/hive.go/app/components/shutdown"
 	"github.com/iotaledger/inx-api-core-v0/core/coreapi"
 	"github.com/iotaledger/inx-api-core-v0/core/database"
 	"github.com/iotaledger/inx-api-core-v0/plugins/inx"
