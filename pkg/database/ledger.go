@@ -33,24 +33,24 @@ func milestoneIndexFromBytes(bytes []byte) milestone.Index {
 	return milestone.Index(binary.LittleEndian.Uint32(bytes))
 }
 
-func (db *Database) GetBalanceForAddress(address hornet.Hash) (uint64, milestone.Index, error) {
+func (db *Database) BalanceForAddress(address hornet.Hash) (uint64, milestone.Index, error) {
 
 	value, err := db.ledgerBalanceStore.Get(databaseKeyForAddress(address))
 	if err != nil {
 		if !errors.Is(err, kvstore.ErrKeyNotFound) {
-			return 0, db.GetLedgerIndex(), fmt.Errorf("%w: failed to retrieve balance", err)
+			return 0, db.LedgerIndex(), fmt.Errorf("%w: failed to retrieve balance", err)
 		}
 
-		return 0, db.GetLedgerIndex(), nil
+		return 0, db.LedgerIndex(), nil
 	}
 
-	return balanceFromBytes(value), db.GetLedgerIndex(), err
+	return balanceFromBytes(value), db.LedgerIndex(), err
 }
 
-// GetLedgerDiffForMilestone returns the ledger changes of that specific milestone.
-func (db *Database) GetLedgerDiffForMilestone(ctx context.Context, targetIndex milestone.Index) (map[string]int64, error) {
+// LedgerDiffForMilestone returns the ledger changes of that specific milestone.
+func (db *Database) LedgerDiffForMilestone(ctx context.Context, targetIndex milestone.Index) (map[string]int64, error) {
 
-	solidMilestoneIndex := db.GetSolidMilestoneIndex()
+	solidMilestoneIndex := db.SolidMilestoneIndex()
 	if targetIndex > solidMilestoneIndex {
 		return nil, fmt.Errorf("target index is too new. maximum: %d, actual: %d", solidMilestoneIndex, targetIndex)
 	}
@@ -92,15 +92,15 @@ func (db *Database) GetLedgerDiffForMilestone(ctx context.Context, targetIndex m
 	}
 
 	if diffSum != 0 {
-		panic(fmt.Sprintf("GetLedgerDiffForMilestone(): Ledger diff for milestone %d does not sum up to zero", targetIndex))
+		panic(fmt.Sprintf("LedgerDiffForMilestone(): Ledger diff for milestone %d does not sum up to zero", targetIndex))
 	}
 
 	return diff, nil
 }
 
-func (db *Database) GetLedgerStateForMilestone(ctx context.Context, targetIndex milestone.Index) (map[string]uint64, milestone.Index, error) {
+func (db *Database) LedgerStateForMilestone(ctx context.Context, targetIndex milestone.Index) (map[string]uint64, milestone.Index, error) {
 
-	solidMilestoneIndex := db.GetSolidMilestoneIndex()
+	solidMilestoneIndex := db.SolidMilestoneIndex()
 	if targetIndex == 0 {
 		targetIndex = solidMilestoneIndex
 	}
@@ -113,13 +113,13 @@ func (db *Database) GetLedgerStateForMilestone(ctx context.Context, targetIndex 
 		return nil, 0, fmt.Errorf("target index is too old. minimum: %d, actual: %d", db.snapshot.PruningIndex+1, targetIndex)
 	}
 
-	balances, ledgerMilestone, err := db.GetLedgerStateForLSMI(ctx)
+	balances, ledgerMilestone, err := db.LedgerStateForLSMI(ctx)
 	if err != nil {
 		if errors.Is(err, ErrOperationAborted) {
 			return nil, 0, err
 		}
 
-		return nil, 0, fmt.Errorf("getLedgerStateForLSMI failed! %w", err)
+		return nil, 0, fmt.Errorf("ledgerStateForLSMI failed! %w", err)
 	}
 
 	if ledgerMilestone != solidMilestoneIndex {
@@ -128,13 +128,13 @@ func (db *Database) GetLedgerStateForMilestone(ctx context.Context, targetIndex 
 
 	// Calculate balances for targetIndex
 	for milestoneIndex := solidMilestoneIndex; milestoneIndex > targetIndex; milestoneIndex-- {
-		diff, err := db.GetLedgerDiffForMilestone(ctx, milestoneIndex)
+		diff, err := db.LedgerDiffForMilestone(ctx, milestoneIndex)
 		if err != nil {
 			if errors.Is(err, ErrOperationAborted) {
 				return nil, 0, err
 			}
 
-			return nil, 0, fmt.Errorf("getLedgerDiffForMilestone: %w", err)
+			return nil, 0, fmt.Errorf("ledgerDiffForMilestone: %w", err)
 		}
 
 		for address, change := range diff {
@@ -160,8 +160,8 @@ func (db *Database) GetLedgerStateForMilestone(ctx context.Context, targetIndex 
 	return balances, targetIndex, nil
 }
 
-// GetLedgerStateForLSMI returns all balances for the current solid milestone.
-func (db *Database) GetLedgerStateForLSMI(ctx context.Context) (map[string]uint64, milestone.Index, error) {
+// LedgerStateForLSMI returns all balances for the current solid milestone.
+func (db *Database) LedgerStateForLSMI(ctx context.Context) (map[string]uint64, milestone.Index, error) {
 
 	balances := make(map[string]uint64)
 
@@ -180,11 +180,11 @@ func (db *Database) GetLedgerStateForLSMI(ctx context.Context) (map[string]uint6
 		return true
 	})
 	if err != nil {
-		return nil, db.GetLedgerIndex(), err
+		return nil, db.LedgerIndex(), err
 	}
 
 	if aborted {
-		return nil, db.GetLedgerIndex(), ErrOperationAborted
+		return nil, db.LedgerIndex(), ErrOperationAborted
 	}
 
 	var total uint64
@@ -196,5 +196,5 @@ func (db *Database) GetLedgerStateForLSMI(ctx context.Context) (map[string]uint6
 		panic(fmt.Sprintf("total does not match supply: %d != %d", total, consts.TotalSupply))
 	}
 
-	return balances, db.GetLedgerIndex(), err
+	return balances, db.LedgerIndex(), err
 }

@@ -103,11 +103,11 @@ func (bundle *Bundle) Unmarshal(data []byte) error {
 	return nil
 }
 
-func (bundle *Bundle) GetLedgerChanges() map[string]int64 {
+func (bundle *Bundle) LedgerChanges() map[string]int64 {
 	return bundle.ledgerChanges
 }
 
-func (bundle *Bundle) GetHead() *Transaction {
+func (bundle *Bundle) Head() *Transaction {
 	if len(bundle.headTx) == 0 {
 		panic("head hash can never be empty")
 	}
@@ -115,7 +115,7 @@ func (bundle *Bundle) GetHead() *Transaction {
 	return bundle.db.loadBundleTxIfExistsOrPanic(bundle.headTx, bundle.hash)
 }
 
-func (bundle *Bundle) GetTailHash() hornet.Hash {
+func (bundle *Bundle) TailHash() hornet.Hash {
 	if len(bundle.tailTx) == 0 {
 		panic("tail hash can never be empty")
 	}
@@ -123,7 +123,7 @@ func (bundle *Bundle) GetTailHash() hornet.Hash {
 	return bundle.tailTx
 }
 
-func (bundle *Bundle) GetTail() *Transaction {
+func (bundle *Bundle) Tail() *Transaction {
 	if len(bundle.tailTx) == 0 {
 		panic("tail hash can never be empty")
 	}
@@ -131,7 +131,7 @@ func (bundle *Bundle) GetTail() *Transaction {
 	return bundle.db.loadBundleTxIfExistsOrPanic(bundle.tailTx, bundle.hash)
 }
 
-func (bundle *Bundle) GetTransactions() []*Transaction {
+func (bundle *Bundle) Transactions() []*Transaction {
 
 	txs := make([]*Transaction, 0, len(bundle.txs))
 	for txHash := range bundle.txs {
@@ -150,21 +150,21 @@ func (bundle *Bundle) IsValueSpam() bool {
 	return bundle.metadata.HasBit(MetadataIsValueSpam)
 }
 
-func (bundle *Bundle) GetMilestoneIndex() milestone.Index {
+func (bundle *Bundle) MilestoneIndex() milestone.Index {
 	bundle.milestoneIndexOnce.Do(func() {
-		tailTx := bundle.GetTail()
+		tailTx := bundle.Tail()
 		bundle.milestoneIndex = milestone.Index(trinary.TrytesToInt(tailTx.Tx.ObsoleteTag))
 	})
 
 	return bundle.milestoneIndex
 }
 
-func (bundle *Bundle) GetMilestoneHash() hornet.Hash {
+func (bundle *Bundle) MilestoneHash() hornet.Hash {
 	return bundle.tailTx
 }
 
 func (db *Database) loadBundleTxIfExistsOrPanic(txHash hornet.Hash, bundleHash hornet.Hash) *Transaction {
-	tx := db.GetTransactionOrNil(txHash)
+	tx := db.TransactionOrNil(txHash)
 	if tx == nil {
 		log.Panicf("bundle %s has a reference to a non persisted transaction: %s", bundleHash.Trytes(), txHash.Trytes())
 	}
@@ -172,7 +172,7 @@ func (db *Database) loadBundleTxIfExistsOrPanic(txHash hornet.Hash, bundleHash h
 	return tx
 }
 
-func (db *Database) GetBundleOrNil(tailTxHash hornet.Hash) *Bundle {
+func (db *Database) BundleOrNil(tailTxHash hornet.Hash) *Bundle {
 	key := databaseKeyForBundle(tailTxHash)
 
 	data, err := db.bundleStore.Get(key)

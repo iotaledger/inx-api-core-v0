@@ -5,7 +5,7 @@ import (
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
 )
 
-func (db *Database) GetApproverHashes(txHash hornet.Hash, maxFind ...int) hornet.Hashes {
+func (db *Database) ApproverHashes(txHash hornet.Hash, maxFind ...int) hornet.Hashes {
 	var approverHashes hornet.Hashes
 
 	i := 0

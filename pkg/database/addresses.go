@@ -24,7 +24,7 @@ func databaseKeyPrefixForAddressTransaction(address hornet.Hash, txHash hornet.H
 	return append(result, txHash...)
 }
 
-func (db *Database) GetTransactionHashesForAddress(address hornet.Hash, valueOnly bool, forceRelease bool, maxFind ...int) hornet.Hashes {
+func (db *Database) TransactionHashesForAddress(address hornet.Hash, valueOnly bool, maxFind ...int) hornet.Hashes {
 
 	searchPrefix := databaseKeyPrefixForAddress(address)
 	if valueOnly {

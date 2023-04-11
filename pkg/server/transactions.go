@@ -23,7 +23,7 @@ func (s *DatabaseServer) findTransactions(maxResults int, valueOnly bool, queryB
 	if len(queryBundleHashes) > 0 {
 		// search txs by bundle hash
 		for bundleHash := range queryBundleHashes {
-			for _, r := range s.Database.GetBundleTransactionHashes(hornet.Hash(bundleHash), true, maxResults-len(results)) {
+			for _, r := range s.Database.BundleTransactionHashes(hornet.Hash(bundleHash), maxResults-len(results)) {
 				results[string(r)] = struct{}{}
 			}
 		}
@@ -35,7 +35,7 @@ func (s *DatabaseServer) findTransactions(maxResults int, valueOnly bool, queryB
 		if !searchedBefore {
 			// search txs by approvees
 			for approveeHash := range queryApproveeHashes {
-				for _, r := range s.Database.GetApproverHashes(hornet.Hash(approveeHash), maxResults-len(results)) {
+				for _, r := range s.Database.ApproverHashes(hornet.Hash(approveeHash), maxResults-len(results)) {
 					results[string(r)] = struct{}{}
 				}
 			}
@@ -63,7 +63,7 @@ func (s *DatabaseServer) findTransactions(maxResults int, valueOnly bool, queryB
 		if !searchedBefore {
 			// search txs by address
 			for addressHash := range queryAddressHashes {
-				for _, r := range s.Database.GetTransactionHashesForAddress(hornet.Hash(addressHash), valueOnly, true, maxResults-len(results)) {
+				for _, r := range s.Database.TransactionHashesForAddress(hornet.Hash(addressHash), valueOnly, maxResults-len(results)) {
 					results[string(r)] = struct{}{}
 				}
 			}
@@ -91,7 +91,7 @@ func (s *DatabaseServer) findTransactions(maxResults int, valueOnly bool, queryB
 		if !searchedBefore {
 			// search txs by tags
 			for tagHash := range queryTagHashes {
-				for _, r := range s.Database.GetTagHashes(hornet.Hash(tagHash), true, maxResults-len(results)) {
+				for _, r := range s.Database.TagHashes(hornet.Hash(tagHash), true, maxResults-len(results)) {
 					results[string(r)] = struct{}{}
 				}
 			}
@@ -270,6 +270,6 @@ func (s *DatabaseServer) transactions(c echo.Context) (interface{}, error) {
 			return ""
 		}(),
 		TransactionHashes: txHashes,
-		LedgerIndex:       s.Database.GetLedgerIndex(),
+		LedgerIndex:       s.Database.LedgerIndex(),
 	}, nil
 }

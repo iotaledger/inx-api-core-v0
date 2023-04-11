@@ -46,19 +46,19 @@ func NewTransactionMetadata(txHash hornet.Hash) *TransactionMetadata {
 	}
 }
 
-func (m *TransactionMetadata) GetTxHash() hornet.Hash {
+func (m *TransactionMetadata) TxHash() hornet.Hash {
 	return m.txHash
 }
 
-func (m *TransactionMetadata) GetTrunkHash() hornet.Hash {
+func (m *TransactionMetadata) TrunkHash() hornet.Hash {
 	return m.trunkHash
 }
 
-func (m *TransactionMetadata) GetBranchHash() hornet.Hash {
+func (m *TransactionMetadata) BranchHash() hornet.Hash {
 	return m.branchHash
 }
 
-func (m *TransactionMetadata) GetBundleHash() hornet.Hash {
+func (m *TransactionMetadata) BundleHash() hornet.Hash {
 	return m.bundleHash
 }
 
@@ -70,7 +70,7 @@ func (m *TransactionMetadata) IsConfirmed() bool {
 	return m.metadata.HasBit(TransactionMetadataConfirmed)
 }
 
-func (m *TransactionMetadata) GetConfirmed() (bool, milestone.Index) {
+func (m *TransactionMetadata) ConfirmedWithIndex() (bool, milestone.Index) {
 	return m.metadata.HasBit(TransactionMetadataConfirmed), m.confirmationIndex
 }
 
@@ -112,7 +112,7 @@ func (m *TransactionMetadata) Unmarshal(data []byte) error {
 	return nil
 }
 
-func (db *Database) GetTxMetadataOrNil(txHash hornet.Hash) *TransactionMetadata {
+func (db *Database) TxMetadataOrNil(txHash hornet.Hash) *TransactionMetadata {
 	key := txHash
 
 	data, err := db.metadataStore.Get(key)
@@ -135,15 +135,15 @@ func (db *Database) GetTxMetadataOrNil(txHash hornet.Hash) *TransactionMetadata 
 }
 
 func (db *Database) addAdditionalTxInfoToMetadata(metadata *TransactionMetadata) {
-	trunkHash := metadata.GetTrunkHash()
-	branchHash := metadata.GetTrunkHash()
+	trunkHash := metadata.TrunkHash()
+	branchHash := metadata.TrunkHash()
 
 	if len(trunkHash) == 0 || len(branchHash) == 0 {
-		tx := db.GetTransactionOrNil(metadata.GetTxHash())
+		tx := db.TransactionOrNil(metadata.TxHash())
 		if tx == nil {
-			panic(fmt.Sprintf("transaction not found for metadata: %v", metadata.GetTxHash().Trytes()))
+			panic(fmt.Sprintf("transaction not found for metadata: %v", metadata.TxHash().Trytes()))
 		}
 
-		metadata.SetAdditionalTxInfo(tx.GetTrunkHash(), tx.GetBranchHash(), tx.GetBundleHash(), tx.IsHead(), tx.IsTail(), tx.IsValue())
+		metadata.SetAdditionalTxInfo(tx.TrunkHash(), tx.BranchHash(), tx.BundleHash(), tx.IsHead(), tx.IsTail(), tx.IsValue())
 	}
 }

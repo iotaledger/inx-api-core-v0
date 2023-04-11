@@ -33,7 +33,7 @@ func (s *DatabaseServer) rpcGetBalances(c echo.Context) (interface{}, error) {
 
 	for _, addr := range request.Addresses {
 
-		balance, _, err := s.Database.GetBalanceForAddress(hornet.HashFromAddressTrytes(addr))
+		balance, _, err := s.Database.BalanceForAddress(hornet.HashFromAddressTrytes(addr))
 		if err != nil {
 			return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
 		}
@@ -42,11 +42,11 @@ func (s *DatabaseServer) rpcGetBalances(c echo.Context) (interface{}, error) {
 		result.Balances = append(result.Balances, strconv.FormatUint(balance, 10))
 	}
 
-	latestSolidMilestoneBundle := s.Database.GetLatestSolidMilestoneBundle()
+	latestSolidMilestoneBundle := s.Database.LatestSolidMilestoneBundle()
 
 	// The index of the milestone that confirmed the most recent balance
-	result.MilestoneIndex = latestSolidMilestoneBundle.GetMilestoneIndex()
-	result.References = []string{latestSolidMilestoneBundle.GetMilestoneHash().Trytes()}
+	result.MilestoneIndex = latestSolidMilestoneBundle.MilestoneIndex()
+	result.References = []string{latestSolidMilestoneBundle.MilestoneHash().Trytes()}
 
 	return result, nil
 }
@@ -57,7 +57,7 @@ func (s *DatabaseServer) addressBalance(c echo.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	balance, _, err := s.Database.GetBalanceForAddress(addr)
+	balance, _, err := s.Database.BalanceForAddress(addr)
 	if err != nil {
 		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
 	}
@@ -65,6 +65,6 @@ func (s *DatabaseServer) addressBalance(c echo.Context) (interface{}, error) {
 	return &balanceResponse{
 		Address:     addr.Trytes(),
 		Balance:     strconv.FormatUint(balance, 10),
-		LedgerIndex: s.Database.GetLedgerIndex(),
+		LedgerIndex: s.Database.LedgerIndex(),
 	}, nil
 }

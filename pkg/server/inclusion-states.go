@@ -26,7 +26,7 @@ func (s *DatabaseServer) rpcGetInclusionStates(c echo.Context) (interface{}, err
 
 	for _, tx := range request.Transactions {
 		// get tx data
-		txMeta := s.Database.GetTxMetadataOrNil(hornet.HashFromHashTrytes(tx))
+		txMeta := s.Database.TxMetadataOrNil(hornet.HashFromHashTrytes(tx))
 		if txMeta == nil {
 			// if tx is unknown, return false
 			inclusionStates = append(inclusionStates, false)
@@ -51,7 +51,7 @@ func (s *DatabaseServer) transactionInclusionState(c echo.Context) (interface{},
 	}
 
 	// get tx data
-	txMeta := s.Database.GetTxMetadataOrNil(txHash)
+	txMeta := s.Database.TxMetadataOrNil(txHash)
 	if txMeta == nil {
 		// if tx is unknown, return false
 		return &transactionInclusionStateResponse{

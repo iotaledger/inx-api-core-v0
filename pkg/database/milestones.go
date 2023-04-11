@@ -34,7 +34,7 @@ type Milestone struct {
 	Hash  hornet.Hash
 }
 
-func (db *Database) GetMilestoneOrNil(milestoneIndex milestone.Index) *Milestone {
+func (db *Database) MilestoneOrNil(milestoneIndex milestone.Index) *Milestone {
 	key := databaseKeyForMilestoneIndex(milestoneIndex)
 
 	data, err := db.milestoneStore.Get(key)
@@ -51,18 +51,34 @@ func (db *Database) GetMilestoneOrNil(milestoneIndex milestone.Index) *Milestone
 	return milestone
 }
 
-// GetMilestoneBundleOrNil returns the Bundle of a milestone index or nil if it doesn't exist.
-func (db *Database) GetMilestoneBundleOrNil(milestoneIndex milestone.Index) *Bundle {
+// MilestoneBundleOrNil returns the Bundle of a milestone index or nil if it doesn't exist.
+func (db *Database) MilestoneBundleOrNil(milestoneIndex milestone.Index) *Bundle {
 
-	milestone := db.GetMilestoneOrNil(milestoneIndex)
+	milestone := db.MilestoneOrNil(milestoneIndex)
 	if milestone == nil {
 		return nil
 	}
 
-	return db.GetBundleOrNil(milestone.Hash)
+	return db.BundleOrNil(milestone.Hash)
 }
 
-func (db *Database) GetLedgerIndex() milestone.Index {
+// MilestoneTimestamp returns the timestamp of a milestone.
+func (db *Database) MilestoneTimestamp(milestoneIndex milestone.Index) (uint64, error) {
+
+	milestone := db.MilestoneOrNil(milestoneIndex)
+	if milestone == nil {
+		return 0, fmt.Errorf("milestone %d not found", milestoneIndex)
+	}
+
+	tx := db.TransactionOrNil(milestone.Hash)
+	if tx == nil {
+		return 0, fmt.Errorf("milestone %d tail transaction not found", milestoneIndex)
+	}
+
+	return tx.Tx.Timestamp, nil
+}
+
+func (db *Database) LedgerIndex() milestone.Index {
 	db.ledgerMilestoneIndexOnce.Do(func() {
 		value, err := db.ledgerStore.Get([]byte(ledgerMilestoneIndexKey))
 		if err != nil {
@@ -74,17 +90,17 @@ func (db *Database) GetLedgerIndex() milestone.Index {
 	return db.ledgerMilestoneIndex
 }
 
-// GetSolidMilestoneIndex returns the latest solid milestone index.
-func (db *Database) GetSolidMilestoneIndex() milestone.Index {
+// SolidMilestoneIndex returns the latest solid milestone index.
+func (db *Database) SolidMilestoneIndex() milestone.Index {
 	// the solid milestone index is always equal to the ledgerMilestoneIndex in "readonly" mode
-	return db.GetLedgerIndex()
+	return db.LedgerIndex()
 }
 
-// GetLatestSolidMilestoneBundle returns the latest solid milestone bundle.
-func (db *Database) GetLatestSolidMilestoneBundle() *Bundle {
+// LatestSolidMilestoneBundle returns the latest solid milestone bundle.
+func (db *Database) LatestSolidMilestoneBundle() *Bundle {
 	db.latestSolidMilestoneBundleOnce.Do(func() {
-		latestSolidMilestoneIndex := db.GetSolidMilestoneIndex()
-		latestSolidMilestoneBundle := db.GetMilestoneBundleOrNil(latestSolidMilestoneIndex)
+		latestSolidMilestoneIndex := db.SolidMilestoneIndex()
+		latestSolidMilestoneBundle := db.MilestoneBundleOrNil(latestSolidMilestoneIndex)
 		if latestSolidMilestoneBundle == nil {
 			panic(fmt.Errorf("latest solid milestone bundle not found: %d", latestSolidMilestoneIndex))
 		}

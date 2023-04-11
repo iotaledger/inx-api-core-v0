@@ -46,7 +46,7 @@ func getTimestampFromTx(transaction *transaction.Transaction) int64 {
 	return timestamp
 }
 
-func (tx *Transaction) GetTrunkHash() hornet.Hash {
+func (tx *Transaction) TrunkHash() hornet.Hash {
 	tx.trunkHashOnce.Do(func() {
 		tx.trunkHash = hornet.HashFromHashTrytes(tx.Tx.TrunkTransaction)
 	})
@@ -54,7 +54,7 @@ func (tx *Transaction) GetTrunkHash() hornet.Hash {
 	return tx.trunkHash
 }
 
-func (tx *Transaction) GetBranchHash() hornet.Hash {
+func (tx *Transaction) BranchHash() hornet.Hash {
 	tx.branchHashOnce.Do(func() {
 		tx.branchHash = hornet.HashFromHashTrytes(tx.Tx.BranchTransaction)
 	})
@@ -62,7 +62,7 @@ func (tx *Transaction) GetBranchHash() hornet.Hash {
 	return tx.branchHash
 }
 
-func (tx *Transaction) GetBundleHash() hornet.Hash {
+func (tx *Transaction) BundleHash() hornet.Hash {
 	tx.bundleHashOnce.Do(func() {
 		tx.bundleHash = hornet.HashFromHashTrytes(tx.Tx.Bundle)
 	})
@@ -121,7 +121,7 @@ func metadataFactory(key []byte, data []byte) (*TransactionMetadata, error) {
 	return txMeta, nil
 }
 
-func (db *Database) GetTransactionOrNil(txHash hornet.Hash) *Transaction {
+func (db *Database) TransactionOrNil(txHash hornet.Hash) *Transaction {
 	key := txHash
 
 	data, err := db.txStore.Get(key)

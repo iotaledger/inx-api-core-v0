@@ -196,8 +196,8 @@ type SyncState struct {
 
 func (db *Database) LatestSyncState() *SyncState {
 	db.syncStateOnce.Do(func() {
-		ledgerIndex := db.GetLedgerIndex()
-		latestMilestoneHash := db.GetLatestSolidMilestoneBundle().GetMilestoneHash().Trytes()
+		ledgerIndex := db.LedgerIndex()
+		latestMilestoneHash := db.LatestSolidMilestoneBundle().MilestoneHash().Trytes()
 
 		db.syncState = &SyncState{
 			LatestMilestone:                    latestMilestoneHash,

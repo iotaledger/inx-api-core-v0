@@ -27,7 +27,7 @@ type newBundleWithValueFunc[B Container, T Container] func(bundleHash trinary.Ha
 //nolint:nonamedreturns
 func getMilestoneStateDiff[T Container, H Container, B Container](db *database.Database, milestoneIndex milestone.Index, newTxWithValue newTxWithValueFunc[T], newTxHashWithValue newTxHashWithValueFunc[H], newBundleWithValue newBundleWithValueFunc[B, T]) (confirmedTxWithValue []H, confirmedBundlesWithValue []B, totalLedgerChanges map[string]int64, err error) {
 
-	msBndl := db.GetMilestoneBundleOrNil(milestoneIndex)
+	msBndl := db.MilestoneBundleOrNil(milestoneIndex)
 	if msBndl == nil {
 		return nil, nil, nil, fmt.Errorf("milestone not found: %d", milestoneIndex)
 	}
@@ -36,7 +36,7 @@ func getMilestoneStateDiff[T Container, H Container, B Container](db *database.D
 	txsToTraverse := make(map[string]struct{})
 	totalLedgerChanges = make(map[string]int64)
 
-	txsToTraverse[string(msBndl.GetTailHash())] = struct{}{}
+	txsToTraverse[string(msBndl.TailHash())] = struct{}{}
 
 	// Collect all tx to check by traversing the tangle
 	// Loop as long as new transactions are added in every loop cycle
@@ -55,12 +55,12 @@ func getMilestoneStateDiff[T Container, H Container, B Container](db *database.D
 				continue
 			}
 
-			txMeta := db.GetTxMetadataOrNil(hornet.Hash(txHash))
+			txMeta := db.TxMetadataOrNil(hornet.Hash(txHash))
 			if txMeta == nil {
 				return nil, nil, nil, fmt.Errorf("getMilestoneStateDiff: transaction not found: %v", hornet.Hash(txHash).Trytes())
 			}
 
-			confirmed, at := txMeta.GetConfirmed()
+			confirmed, at := txMeta.ConfirmedWithIndex()
 			if confirmed {
 				if at != milestoneIndex {
 					// ignore all tx that were confirmed by another milestone
@@ -71,36 +71,36 @@ func getMilestoneStateDiff[T Container, H Container, B Container](db *database.D
 			}
 
 			// Mark the approvees to be traversed
-			txsToTraverse[string(txMeta.GetTrunkHash())] = struct{}{}
-			txsToTraverse[string(txMeta.GetBranchHash())] = struct{}{}
+			txsToTraverse[string(txMeta.TrunkHash())] = struct{}{}
+			txsToTraverse[string(txMeta.BranchHash())] = struct{}{}
 
 			if !txMeta.IsTail() {
 				continue
 			}
 
-			bndl := db.GetBundleOrNil(hornet.Hash(txHash))
+			bndl := db.BundleOrNil(hornet.Hash(txHash))
 			if bndl == nil {
-				txBundle := txMeta.GetBundleHash()
+				txBundle := txMeta.BundleHash()
 
 				return nil, nil, nil, fmt.Errorf("getMilestoneStateDiff: Tx: %v, bundle not found: %v", hornet.Hash(txHash).Trytes(), txBundle.Trytes())
 			}
 
 			if !bndl.IsValid() {
-				txBundle := txMeta.GetBundleHash()
+				txBundle := txMeta.BundleHash()
 
 				return nil, nil, nil, fmt.Errorf("getMilestoneStateDiff: Tx: %v, bundle not valid: %v", hornet.Hash(txHash).Trytes(), txBundle.Trytes())
 			}
 
 			if !bndl.IsValueSpam() {
-				ledgerChanges := bndl.GetLedgerChanges()
+				ledgerChanges := bndl.LedgerChanges()
 
 				var txsWithValue []T
 
-				txs := bndl.GetTransactions()
+				txs := bndl.Transactions()
 				for _, hornetTx := range txs {
 					// hornetTx is being retained during the loop, so safe to use the pointer here
 					if hornetTx.Tx.Value != 0 {
-						confirmedTxWithValue = append(confirmedTxWithValue, newTxHashWithValue(hornetTx.Tx.Hash, bndl.GetTailHash().Trytes(), hornetTx.Tx.Bundle, hornetTx.Tx.Address, hornetTx.Tx.Value))
+						confirmedTxWithValue = append(confirmedTxWithValue, newTxHashWithValue(hornetTx.Tx.Hash, bndl.TailHash().Trytes(), hornetTx.Tx.Bundle, hornetTx.Tx.Address, hornetTx.Tx.Value))
 					}
 					txsWithValue = append(txsWithValue, newTxWithValue(hornetTx.Tx.Hash, hornetTx.Tx.Address, hornetTx.Tx.CurrentIndex, hornetTx.Tx.Value))
 				}
@@ -108,8 +108,8 @@ func getMilestoneStateDiff[T Container, H Container, B Container](db *database.D
 					totalLedgerChanges[address] += change
 				}
 
-				bundleHeadTx := bndl.GetHead()
-				confirmedBundlesWithValue = append(confirmedBundlesWithValue, newBundleWithValue(txMeta.GetBundleHash().Trytes(), bndl.GetTailHash().Trytes(), txsWithValue, bundleHeadTx.Tx.CurrentIndex))
+				bundleHeadTx := bndl.Head()
+				confirmedBundlesWithValue = append(confirmedBundlesWithValue, newBundleWithValue(txMeta.BundleHash().Trytes(), bndl.TailHash().Trytes(), txsWithValue, bundleHeadTx.Tx.CurrentIndex))
 			}
 
 			// we only add the tail transaction to the txsToConfirm set, in order to not
@@ -130,7 +130,7 @@ func (s *DatabaseServer) rpcGetLedgerState(c echo.Context) (interface{}, error) 
 		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
 	}
 
-	balances, index, err := s.Database.GetLedgerStateForMilestone(c.Request().Context(), request.TargetIndex)
+	balances, index, err := s.Database.LedgerStateForMilestone(c.Request().Context(), request.TargetIndex)
 	if err != nil {
 		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
 	}
@@ -152,13 +152,13 @@ func (s *DatabaseServer) rpcGetLedgerDiff(c echo.Context) (interface{}, error) {
 		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
 	}
 
-	smi := s.Database.GetSolidMilestoneIndex()
+	smi := s.Database.SolidMilestoneIndex()
 	requestedIndex := request.MilestoneIndex
 	if requestedIndex > smi {
 		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", requestedIndex, smi)
 	}
 
-	diff, err := s.Database.GetLedgerDiffForMilestone(c.Request().Context(), requestedIndex)
+	diff, err := s.Database.LedgerDiffForMilestone(c.Request().Context(), requestedIndex)
 	if err != nil {
 		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
 	}
@@ -180,7 +180,7 @@ func (s *DatabaseServer) rpcGetLedgerDiffExt(c echo.Context) (interface{}, error
 		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
 	}
 
-	smi := s.Database.GetSolidMilestoneIndex()
+	smi := s.Database.SolidMilestoneIndex()
 	requestedIndex := request.MilestoneIndex
 	if requestedIndex > smi {
 		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", requestedIndex, smi)
@@ -234,7 +234,7 @@ func (s *DatabaseServer) rpcGetLedgerDiffExt(c echo.Context) (interface{}, error
 }
 
 func (s *DatabaseServer) ledgerState(c echo.Context, targetIndex milestone.Index) (interface{}, error) {
-	balances, index, err := s.Database.GetLedgerStateForMilestone(c.Request().Context(), targetIndex)
+	balances, index, err := s.Database.LedgerStateForMilestone(c.Request().Context(), targetIndex)
 	if err != nil {
 		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
 	}
@@ -270,12 +270,12 @@ func (s *DatabaseServer) ledgerDiff(c echo.Context) (interface{}, error) {
 	}
 	msIndex := milestone.Index(msIndexIotaGo)
 
-	smi := s.Database.GetSolidMilestoneIndex()
+	smi := s.Database.SolidMilestoneIndex()
 	if msIndex > smi {
 		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", msIndex, smi)
 	}
 
-	diff, err := s.Database.GetLedgerDiffForMilestone(c.Request().Context(), msIndex)
+	diff, err := s.Database.LedgerDiffForMilestone(c.Request().Context(), msIndex)
 	if err != nil {
 		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
 	}
@@ -298,7 +298,7 @@ func (s *DatabaseServer) ledgerDiffExtended(c echo.Context) (interface{}, error)
 	}
 	msIndex := milestone.Index(msIndexIotaGo)
 
-	smi := s.Database.GetSolidMilestoneIndex()
+	smi := s.Database.SolidMilestoneIndex()
 	if msIndex > smi {
 		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", msIndex, smi)
 	}

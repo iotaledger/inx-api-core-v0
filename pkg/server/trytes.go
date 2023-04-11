@@ -32,7 +32,7 @@ func (s *DatabaseServer) rpcGetTrytes(c echo.Context) (interface{}, error) {
 	}
 
 	for _, hash := range request.Hashes {
-		tx := s.Database.GetTransactionOrNil(hornet.HashFromHashTrytes(hash))
+		tx := s.Database.TransactionOrNil(hornet.HashFromHashTrytes(hash))
 		if tx == nil {
 			trytes = append(trytes, strings.Repeat("9", 2673))
 
@@ -58,7 +58,7 @@ func (s *DatabaseServer) transactionTrytes(c echo.Context) (interface{}, error) 
 		return nil, err
 	}
 
-	tx := s.Database.GetTransactionOrNil(txHash)
+	tx := s.Database.TransactionOrNil(txHash)
 	if tx == nil {
 		return nil, errors.WithMessagef(echo.ErrNotFound, "transaction not found: %s", txHash.Trytes())
 	}

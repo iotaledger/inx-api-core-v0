@@ -43,6 +43,6 @@ func (s *DatabaseServer) addressWasSpent(c echo.Context) (interface{}, error) {
 	return &addressWasSpentResponse{
 		Address:     addr.Trytes(),
 		WasSpent:    s.Database.WasAddressSpentFrom(addr),
-		LedgerIndex: s.Database.GetLedgerIndex(),
+		LedgerIndex: s.Database.LedgerIndex(),
 	}, nil
 }

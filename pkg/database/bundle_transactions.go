@@ -12,7 +12,7 @@ func databaseKeyPrefixForBundleHash(bundleHash hornet.Hash) []byte {
 	return bundleHash
 }
 
-func (db *Database) GetBundleTransactionHashes(bundleHash hornet.Hash, forceRelease bool, maxFind ...int) hornet.Hashes {
+func (db *Database) BundleTransactionHashes(bundleHash hornet.Hash, maxFind ...int) hornet.Hashes {
 	var bundleTransactionHashes hornet.Hashes
 
 	/*
