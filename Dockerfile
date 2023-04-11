@@ -1,6 +1,8 @@
 # https://hub.docker.com/_/golang
 FROM golang:1.19-bullseye AS build
 
+ARG BUILD_TAGS=rocksdb
+
 # Ensure ca-certificates are up to date
 RUN update-ca-certificates
 
@@ -19,7 +21,7 @@ RUN go mod download
 RUN go mod verify
 
 # Build the binary
-RUN go build -o /app/inx-api-core-v0 -a
+RUN go build -o /app/inx-api-core-v0 -a -tags="$BUILD_TAGS" -ldflags='-w -s'
 
 # Copy the assets
 COPY ./config_defaults.json /app/config.json
