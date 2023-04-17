@@ -19,18 +19,14 @@ const (
 )
 
 func init() {
-	Plugin = &app.Plugin{
-		Component: &app.Component{
-			Name:      "INX",
-			DepsFunc:  func(cDeps dependencies) { deps = cDeps },
-			Params:    params,
-			Provide:   provide,
-			Configure: configure,
-			Run:       run,
-		},
-		IsEnabled: func() bool {
-			return ParamsINX.Enabled
-		},
+	Component = &app.Component{
+		Name:      "INX",
+		DepsFunc:  func(cDeps dependencies) { deps = cDeps },
+		Params:    params,
+		IsEnabled: func(_ *dig.Container) bool { return ParamsINX.Enabled },
+		Provide:   provide,
+		Configure: configure,
+		Run:       run,
 	}
 }
 
@@ -43,42 +39,42 @@ type dependencies struct {
 }
 
 var (
-	Plugin *app.Plugin
-	deps   dependencies
+	Component *app.Component
+	deps      dependencies
 )
 
 func provide(c *dig.Container) error {
 	return c.Provide(func() *nodebridge.NodeBridge {
-		return nodebridge.NewNodeBridge(Plugin.Logger(), nodebridge.WithTargetNetworkName(ParamsINX.TargetNetworkName))
+		return nodebridge.NewNodeBridge(Component.Logger(), nodebridge.WithTargetNetworkName(ParamsINX.TargetNetworkName))
 	})
 }
 
 func configure() error {
 	if err := deps.NodeBridge.Connect(
-		Plugin.Daemon().ContextStopped(),
+		Component.Daemon().ContextStopped(),
 		ParamsINX.Address,
 		ParamsINX.MaxConnectionAttempts,
 	); err != nil {
-		Plugin.LogErrorfAndExit("failed to connect via INX: %s", err.Error())
+		Component.LogErrorfAndExit("failed to connect via INX: %s", err.Error())
 	}
 
 	return nil
 }
 
 func run() error {
-	if err := Plugin.Daemon().BackgroundWorker("INX", func(ctx context.Context) {
-		Plugin.LogInfo("Starting NodeBridge ...")
+	if err := Component.Daemon().BackgroundWorker("INX", func(ctx context.Context) {
+		Component.LogInfo("Starting NodeBridge ...")
 		deps.NodeBridge.Run(ctx)
-		Plugin.LogInfo("Stopped NodeBridge")
+		Component.LogInfo("Stopped NodeBridge")
 
 		if !errors.Is(ctx.Err(), context.Canceled) {
 			deps.ShutdownHandler.SelfShutdown("INX connection to node dropped", true)
 		}
 	}, daemon.PriorityDisconnectINX); err != nil {
-		Plugin.LogPanicf("failed to start worker: %s", err)
+		Component.LogPanicf("failed to start worker: %s", err)
 	}
 
-	if err := Plugin.Daemon().BackgroundWorker("INX-RestAPI", func(ctx context.Context) {
+	if err := Component.Daemon().BackgroundWorker("INX-RestAPI", func(ctx context.Context) {
 		ctxRegister, cancelRegister := context.WithTimeout(ctx, 5*time.Second)
 
 		advertisedAddress := deps.RestAPIBindAddress
@@ -87,7 +83,7 @@ func run() error {
 		}
 
 		if err := deps.NodeBridge.RegisterAPIRoute(ctxRegister, APIRoute, advertisedAddress, server.APIRoute); err != nil {
-			Plugin.LogErrorfAndExit("Registering INX api route failed: %s", err)
+			Component.LogErrorfAndExit("Registering INX api route failed: %s", err)
 		}
 		cancelRegister()
 
@@ -98,10 +94,10 @@ func run() error {
 
 		//nolint:contextcheck // false positive
 		if err := deps.NodeBridge.UnregisterAPIRoute(ctxUnregister, APIRoute); err != nil {
-			Plugin.LogWarnf("Unregistering INX api route failed: %s", err)
+			Component.LogWarnf("Unregistering INX api route failed: %s", err)
 		}
 	}, daemon.PriorityStopDatabaseAPIINX); err != nil {
-		Plugin.LogPanicf("failed to start worker: %s", err)
+		Component.LogPanicf("failed to start worker: %s", err)
 	}
 
 	return nil

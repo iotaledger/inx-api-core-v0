@@ -19,14 +19,12 @@ const (
 )
 
 func init() {
-	CoreComponent = &app.CoreComponent{
-		Component: &app.Component{
-			Name:     "database",
-			DepsFunc: func(cDeps dependencies) { deps = cDeps },
-			Params:   params,
-			Provide:  provide,
-			Run:      run,
-		},
+	Component = &app.Component{
+		Name:     "database",
+		DepsFunc: func(cDeps dependencies) { deps = cDeps },
+		Params:   params,
+		Provide:  provide,
+		Run:      run,
 	}
 }
 
@@ -38,15 +36,15 @@ type dependencies struct {
 }
 
 var (
-	CoreComponent *app.CoreComponent
-	deps          dependencies
+	Component *app.Component
+	deps      dependencies
 )
 
 func provide(c *dig.Container) error {
 
 	if err := c.Provide(func() (*database.Database, error) {
-		CoreComponent.LogInfo("Setting up database ...")
-		defer CoreComponent.LogInfo("Setting up database ... done!")
+		Component.LogInfo("Setting up database ...")
+		defer Component.LogInfo("Setting up database ... done!")
 
 		tangleDatabase, err := engine.StoreWithDefaultSettings(ParamsDatabase.Tangle.Path, false, hivedb.EngineAuto, "tangle.db", engine.AllowedEnginesStorageAuto...)
 		if err != nil {
@@ -73,16 +71,16 @@ func provide(c *dig.Container) error {
 
 func run() error {
 
-	if err := CoreComponent.Daemon().BackgroundWorker("Close database", func(ctx context.Context) {
+	if err := Component.Daemon().BackgroundWorker("Close database", func(ctx context.Context) {
 		<-ctx.Done()
 
-		CoreComponent.LogInfo("Syncing databases to disk ...")
+		Component.LogInfo("Syncing databases to disk ...")
 		if err := deps.Database.CloseDatabases(); err != nil {
-			CoreComponent.LogPanicf("Syncing databases to disk ... failed: %s", err)
+			Component.LogPanicf("Syncing databases to disk ... failed: %s", err)
 		}
-		CoreComponent.LogInfo("Syncing databases to disk ... done")
+		Component.LogInfo("Syncing databases to disk ... done")
 	}, daemon.PriorityStopDatabase); err != nil {
-		CoreComponent.LogPanicf("failed to start worker: %s", err)
+		Component.LogPanicf("failed to start worker: %s", err)
 	}
 
 	return nil
