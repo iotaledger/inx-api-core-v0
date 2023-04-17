@@ -19,15 +19,13 @@ import (
 )
 
 func init() {
-	CoreComponent = &app.CoreComponent{
-		Component: &app.Component{
-			Name:           "CoreAPIV0",
-			DepsFunc:       func(cDeps dependencies) { deps = cDeps },
-			Params:         params,
-			InitConfigPars: initConfigPars,
-			Provide:        provide,
-			Run:            run,
-		},
+	Component = &app.Component{
+		Name:             "CoreAPIV0",
+		DepsFunc:         func(cDeps dependencies) { deps = cDeps },
+		Params:           params,
+		InitConfigParams: initConfigParams,
+		Provide:          provide,
+		Run:              run,
 	}
 }
 
@@ -39,11 +37,11 @@ type dependencies struct {
 }
 
 var (
-	CoreComponent *app.CoreComponent
-	deps          dependencies
+	Component *app.Component
+	deps      dependencies
 )
 
-func initConfigPars(c *dig.Container) error {
+func initConfigParams(c *dig.Container) error {
 
 	type cfgResult struct {
 		dig.Out
@@ -57,7 +55,7 @@ func initConfigPars(c *dig.Container) error {
 			RestAPIAdvertiseAddress: ParamsRestAPI.AdvertiseAddress,
 		}
 	}); err != nil {
-		CoreComponent.LogPanic(err)
+		Component.LogPanic(err)
 	}
 
 	return nil
@@ -67,7 +65,7 @@ func provide(c *dig.Container) error {
 
 	if err := c.Provide(func() *echo.Echo {
 		e := httpserver.NewEcho(
-			CoreComponent.Logger(),
+			Component.Logger(),
 			nil,
 			ParamsRestAPI.DebugRequestLoggerEnabled,
 		)
@@ -85,8 +83,8 @@ func provide(c *dig.Container) error {
 func run() error {
 
 	// create a background worker that handles the API
-	if err := CoreComponent.Daemon().BackgroundWorker("API", func(ctx context.Context) {
-		CoreComponent.LogInfo("Starting API server ...")
+	if err := Component.Daemon().BackgroundWorker("API", func(ctx context.Context) {
+		Component.LogInfo("Starting API server ...")
 
 		swagger := server.CreateEchoSwagger(deps.Echo, deps.AppInfo.Version, ParamsRestAPI.SwaggerEnabled)
 
@@ -105,27 +103,27 @@ func run() error {
 		}
 
 		go func() {
-			CoreComponent.LogInfof("You can now access the API using: http://%s", ParamsRestAPI.BindAddress)
+			Component.LogInfof("You can now access the API using: http://%s", ParamsRestAPI.BindAddress)
 			if err := deps.Echo.Start(ParamsRestAPI.BindAddress); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				CoreComponent.LogErrorfAndExit("Stopped REST-API server due to an error (%s)", err)
+				Component.LogErrorfAndExit("Stopped REST-API server due to an error (%s)", err)
 			}
 		}()
 
-		CoreComponent.LogInfo("Starting API server ... done")
+		Component.LogInfo("Starting API server ... done")
 		<-ctx.Done()
-		CoreComponent.LogInfo("Stopping API server ...")
+		Component.LogInfo("Stopping API server ...")
 
 		shutdownCtx, shutdownCtxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer shutdownCtxCancel()
 
 		//nolint:contextcheck // false positive
 		if err := deps.Echo.Shutdown(shutdownCtx); err != nil {
-			CoreComponent.LogWarn(err)
+			Component.LogWarn(err)
 		}
 
-		CoreComponent.LogInfo("Stopping API server... done")
+		Component.LogInfo("Stopping API server... done")
 	}, daemon.PriorityStopDatabaseAPI); err != nil {
-		CoreComponent.LogPanicf("failed to start worker: %s", err)
+		Component.LogPanicf("failed to start worker: %s", err)
 	}
 
 	return nil
