@@ -46,15 +46,17 @@ func (s *DatabaseServer) rpcGetTrytes(c echo.Context) (interface{}, error) {
 		if err != nil {
 			return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
 		}
+
 		trytes = append(trytes, txTrytes)
 
 		txMetadata := s.Database.TxMetadataOrNil(hornet.HashFromHashTrytes(hash))
 		if txMetadata == nil {
-			return nil, errors.WithMessagef(echo.ErrInternalServerError, "metadata not found for: %s", hash)
+			return nil, errors.WithMessagef(echo.ErrInternalServerError, "metadata not found for hash: %s", hash)
 		}
 
 		// unconfirmed transactions have milestone 0
 		_, milestone := txMetadata.ConfirmedWithIndex()
+
 		milestones = append(milestones, uint32(milestone))
 	}
 
