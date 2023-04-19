@@ -25,6 +25,8 @@ func (s *DatabaseServer) rpcGetTrytes(c echo.Context) (interface{}, error) {
 	}
 
 	trytes := []string{}
+	milestones := []uint32{}
+
 	for _, hash := range request.Hashes {
 		if !guards.IsTransactionHash(hash) {
 			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid hash provided: %s", hash)
@@ -35,6 +37,7 @@ func (s *DatabaseServer) rpcGetTrytes(c echo.Context) (interface{}, error) {
 		tx := s.Database.TransactionOrNil(hornet.HashFromHashTrytes(hash))
 		if tx == nil {
 			trytes = append(trytes, strings.Repeat("9", 2673))
+			milestones = append(milestones, uint32(0))
 
 			continue
 		}
@@ -45,10 +48,21 @@ func (s *DatabaseServer) rpcGetTrytes(c echo.Context) (interface{}, error) {
 		}
 
 		trytes = append(trytes, txTrytes)
+
+		txMetadata := s.Database.TxMetadataOrNil(hornet.HashFromHashTrytes(hash))
+		if txMetadata == nil {
+			return nil, errors.WithMessagef(echo.ErrInternalServerError, "metadata not found for hash: %s", hash)
+		}
+
+		// unconfirmed transactions have milestone 0
+		_, milestone := txMetadata.ConfirmedWithIndex()
+
+		milestones = append(milestones, uint32(milestone))
 	}
 
 	return &GetTrytesResponse{
-		Trytes: trytes,
+		Trytes:     trytes,
+		Milestones: milestones,
 	}, nil
 }
 

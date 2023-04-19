@@ -65,8 +65,9 @@ type GetTrytes struct {
 
 // GetTrytesResponse struct.
 type GetTrytesResponse struct {
-	Trytes   []trinary.Trytes `json:"trytes"`
-	Duration int              `json:"duration"`
+	Trytes     []trinary.Trytes `json:"trytes"`
+	Milestones []uint32         `json:"milestones"`
+	Duration   int              `json:"duration"`
 }
 
 /////////////////// getInclusionStates ////////////////////////////
