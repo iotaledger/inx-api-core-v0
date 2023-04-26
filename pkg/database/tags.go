@@ -5,7 +5,7 @@ import (
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
 )
 
-func (db *Database) TagHashes(txTag hornet.Hash, forceRelease bool, maxFind ...int) hornet.Hashes {
+func (db *Database) TagHashes(txTag hornet.Hash, maxFind ...int) hornet.Hashes {
 	var tagHashes hornet.Hashes
 
 	i := 0

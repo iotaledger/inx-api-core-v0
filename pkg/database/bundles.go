@@ -198,23 +198,14 @@ func (db *Database) BundleOrNil(tailTxHash hornet.Hash) *Bundle {
 	return bundle
 }
 
-// Bundles returns all existing bundle instances for that bundle hash.
-func (db *Database) Bundles(bundleHash hornet.Hash, maxFind ...int) Bundles {
-
-	//nolint:prealloc
-	var bundles Bundles
-	for _, txTailHash := range db.BundleTailTransactionHashes(bundleHash, maxFind...) {
+// ForEachBundle loops over all existing bundle instances for that bundle hash.
+func (db *Database) ForEachBundle(bundleHash hornet.Hash, consumer func(*Bundle) bool, maxFind ...int) {
+	db.ForEachBundleTailTransactionHash(bundleHash, func(txTailHash hornet.Hash) bool {
 		bndl := db.BundleOrNil(txTailHash) // bundle +1
 		if bndl == nil {
-			continue
+			return true
 		}
 
-		bundles = append(bundles, bndl)
-	}
-
-	if len(bundles) == 0 {
-		return nil
-	}
-
-	return bundles
+		return consumer(bndl)
+	}, maxFind...)
 }

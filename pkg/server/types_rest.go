@@ -55,9 +55,9 @@ type transactionMetadataResponse struct {
 	Included                     bool            `json:"included"`
 	Confirmed                    bool            `json:"confirmed"`
 	Conflicting                  bool            `json:"conflicting"`
-	ReferencedByMilestoneIndex   milestone.Index `json:"referencedByMilestoneIndex,omitempty"` // The milestone index that references this block.
+	ReferencedByMilestoneIndex   milestone.Index `json:"referencedByMilestoneIndex,omitempty"` // The milestone index that references this transaction.
 	MilestoneTimestampReferenced uint64          `json:"milestoneTimestampReferenced"`         // The milestone timestamp this transaction was referenced.
-	MilestoneIndex               milestone.Index `json:"milestoneIndex,omitempty"`             // If this block represents a milestone this is the milestone index
+	MilestoneIndex               milestone.Index `json:"milestoneIndex,omitempty"`             // If this transaction represents a milestone this is the milestone index.
 	LedgerIndex                  milestone.Index `json:"ledgerIndex"`
 }
 

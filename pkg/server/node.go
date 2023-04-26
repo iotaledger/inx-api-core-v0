@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (s *DatabaseServer) rpcGetNodeInfo(c echo.Context) (any, error) {
+func (s *DatabaseServer) rpcGetNodeInfo(_ echo.Context) (any, error) {
 	syncState := s.Database.LatestSyncState()
 
 	return &GetNodeInfoResponse{
