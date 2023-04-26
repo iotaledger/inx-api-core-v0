@@ -91,7 +91,7 @@ func (s *DatabaseServer) findTransactions(maxResults int, valueOnly bool, queryB
 		if !searchedBefore {
 			// search txs by tags
 			for tagHash := range queryTagHashes {
-				for _, r := range s.Database.TagHashes(hornet.Hash(tagHash), true, maxResults-len(results)) {
+				for _, r := range s.Database.TagHashes(hornet.Hash(tagHash), maxResults-len(results)) {
 					results[string(r)] = struct{}{}
 				}
 			}

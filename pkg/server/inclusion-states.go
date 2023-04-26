@@ -7,6 +7,7 @@ import (
 	"github.com/iotaledger/inx-app/pkg/httpserver"
 	"github.com/iotaledger/iota.go/guards"
 
+	"github.com/iotaledger/inx-api-core-v0/pkg/database"
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
 	"github.com/iotaledger/inx-api-core-v0/pkg/milestone"
 )
@@ -66,13 +67,14 @@ func (s *DatabaseServer) transactionMetadata(c echo.Context) (interface{}, error
 	}
 
 	var milestoneIndex milestone.Index
-	bundles := s.Database.Bundles(txMeta.BundleHash())
-	for _, bundle := range bundles {
+	s.Database.ForEachBundle(txMeta.BundleHash(), func(bundle *database.Bundle) bool {
 		if bundle.IsMilestone() {
 			milestoneIndex = bundle.MilestoneIndex()
-			break
+			return false
 		}
-	}
+
+		return true
+	})
 
 	var referencedByMilestoneIndex milestone.Index
 	var milestoneTimestampReferenced uint64
