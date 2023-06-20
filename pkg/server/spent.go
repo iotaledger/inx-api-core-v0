@@ -28,7 +28,7 @@ func (s *DatabaseServer) rpcWereAddressesSpentFrom(c echo.Context) (interface{},
 		}
 
 		// State
-		result.States = append(result.States, s.Database.WasAddressSpentFrom(hornet.HashFromAddressTrytes(addr)))
+		result.States = append(result.States, s.Database.WasAddressSpentFrom(hornet.HashFromAddressTrytes(addr[:81])))
 	}
 
 	return result, nil

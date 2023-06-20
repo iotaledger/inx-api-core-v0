@@ -29,7 +29,7 @@ func parseAddressParam(c echo.Context) (hornet.Hash, error) {
 		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid address hash provided: %s, error: %s", addr, err)
 	}
 
-	return hornet.HashFromAddressTrytes(addr), nil
+	return hornet.HashFromAddressTrytes(addr[:81]), nil
 }
 
 func parseTransactionHashParam(c echo.Context) (hornet.Hash, error) {
@@ -79,7 +79,7 @@ func parseAddressQueryParam(c echo.Context) (hornet.Hash, error) {
 			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid address hash provided: %s, error: %s", value, err)
 		}
 
-		return hornet.HashFromAddressTrytes(value), nil
+		return hornet.HashFromAddressTrytes(value[:81]), nil
 	}
 
 	return nil, nil

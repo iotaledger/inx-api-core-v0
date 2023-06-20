@@ -161,7 +161,7 @@ func (s *DatabaseServer) rpcFindTransactions(c echo.Context) (interface{}, error
 		if err := address.ValidAddress(addressTrytes); err != nil {
 			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid address hash provided: %s", addressTrytes)
 		}
-		queryAddressHashes[string(hornet.HashFromAddressTrytes(addressTrytes))] = struct{}{}
+		queryAddressHashes[string(hornet.HashFromAddressTrytes(addressTrytes[:81]))] = struct{}{}
 	}
 
 	for _, tagTrytes := range request.Tags {

@@ -33,7 +33,7 @@ func (s *DatabaseServer) rpcGetBalances(c echo.Context) (interface{}, error) {
 
 	for _, addr := range request.Addresses {
 
-		balance, _, err := s.Database.BalanceForAddress(hornet.HashFromAddressTrytes(addr))
+		balance, _, err := s.Database.BalanceForAddress(hornet.HashFromAddressTrytes(addr[:81]))
 		if err != nil {
 			return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
 		}
