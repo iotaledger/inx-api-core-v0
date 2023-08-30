@@ -62,8 +62,7 @@ func initConfigParams(c *dig.Container) error {
 }
 
 func provide(c *dig.Container) error {
-
-	if err := c.Provide(func() *echo.Echo {
+	return c.Provide(func() *echo.Echo {
 		e := httpserver.NewEcho(
 			Component.Logger(),
 			nil,
@@ -73,11 +72,7 @@ func provide(c *dig.Container) error {
 		e.Use(middleware.BodyLimit(ParamsRestAPI.Limits.MaxBodyLength))
 
 		return e
-	}); err != nil {
-		return err
-	}
-
-	return nil
+	})
 }
 
 func run() error {

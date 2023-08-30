@@ -41,8 +41,7 @@ var (
 )
 
 func provide(c *dig.Container) error {
-
-	if err := c.Provide(func() (*database.Database, error) {
+	return c.Provide(func() (*database.Database, error) {
 		Component.LogInfo("Setting up database ...")
 		defer Component.LogInfo("Setting up database ... done!")
 
@@ -62,11 +61,7 @@ func provide(c *dig.Container) error {
 		}
 
 		return database.New(tangleDatabase, snapshotDatabase, spentDatabase, ParamsDatabase.Debug)
-	}); err != nil {
-		return err
-	}
-
-	return nil
+	})
 }
 
 func run() error {
