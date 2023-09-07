@@ -67,14 +67,21 @@ func (s *DatabaseServer) transactionMetadata(c echo.Context) (interface{}, error
 	}
 
 	var milestoneIndex milestone.Index
-	s.Database.ForEachBundle(txMeta.BundleHash(), func(bundle *database.Bundle) bool {
-		if bundle.IsMilestone() {
-			milestoneIndex = bundle.MilestoneIndex()
-			return false
-		}
+	if len(txMeta.BundleHash()) > 0 {
+		s.Database.ForEachBundle(txMeta.BundleHash(), func(bundle *database.Bundle) bool {
+			if bundle.IsMilestone() {
+				milestoneIndex = bundle.MilestoneIndex()
+				return false
+			}
 
-		return true
-	})
+			// check if the request context was already canceled
+			if c.Request().Context().Err() != nil {
+				return false
+			}
+
+			return true
+		})
+	}
 
 	var referencedByMilestoneIndex milestone.Index
 	var milestoneTimestampReferenced uint64
