@@ -43,6 +43,7 @@
       "maxResults": 1000
     },
     "swaggerEnabled": false,
+    "useGZIP": true,
     "debugRequestLoggerEnabled": false
   },
   "inx": {
