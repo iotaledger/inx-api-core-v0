@@ -162,6 +162,7 @@ Example:
 | advertiseAddress          | The address of the legacy API HTTP server which is advertised to the INX Server (optional) | string  | ""               |
 | [limits](#restapi_limits) | Configuration for limits                                                                   | object  |                  |
 | swaggerEnabled            | Whether to provide swagger API documentation under endpoint "/swagger"                     | boolean | false            |
+| useGZIP                   | Use the gzip middleware to compress HTTP responses                                         | boolean | true             |
 | debugRequestLoggerEnabled | Whether the debug logging for requests should be enabled                                   | boolean | false            |
 
 ### <a id="restapi_limits"></a> Limits
@@ -183,6 +184,7 @@ Example:
         "maxResults": 1000
       },
       "swaggerEnabled": false,
+      "useGZIP": true,
       "debugRequestLoggerEnabled": false
     }
   }

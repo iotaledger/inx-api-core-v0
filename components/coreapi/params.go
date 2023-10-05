@@ -22,6 +22,9 @@ type ParametersRestAPI struct {
 	// SwaggerEnabled defines whether to provide swagger API documentation under endpoint "/swagger"
 	SwaggerEnabled bool `default:"false" usage:"whether to provide swagger API documentation under endpoint \"/swagger\""`
 
+	// UseGZIP defines whether to use the gzip middleware to compress HTTP responses
+	UseGZIP bool `default:"true" usage:"use the gzip middleware to compress HTTP responses"`
+
 	// DebugRequestLoggerEnabled defines whether the debug logging for requests should be enabled
 	DebugRequestLoggerEnabled bool `default:"false" usage:"whether the debug logging for requests should be enabled"`
 }
