@@ -45,17 +45,17 @@ func provide(c *dig.Container) error {
 		Component.LogInfo("Setting up database ...")
 		defer Component.LogInfo("Setting up database ... done!")
 
-		tangleDatabase, err := engine.StoreWithDefaultSettings(ParamsDatabase.Tangle.Path, false, hivedb.EngineAuto, "tangle.db", engine.AllowedEnginesStorageAuto...)
+		tangleDatabase, err := engine.StoreWithDefaultSettings(ParamsDatabase.Tangle.Path, false, hivedb.EngineAuto, engine.AllowedEnginesStorageAuto...)
 		if err != nil {
 			return nil, err
 		}
 
-		snapshotDatabase, err := engine.StoreWithDefaultSettings(ParamsDatabase.Snapshot.Path, false, hivedb.EngineAuto, "snapshot.db", engine.AllowedEnginesStorageAuto...)
+		snapshotDatabase, err := engine.StoreWithDefaultSettings(ParamsDatabase.Snapshot.Path, false, hivedb.EngineAuto, engine.AllowedEnginesStorageAuto...)
 		if err != nil {
 			return nil, err
 		}
 
-		spentDatabase, err := engine.StoreWithDefaultSettings(ParamsDatabase.Spent.Path, false, hivedb.EngineAuto, "spent.db", engine.AllowedEnginesStorageAuto...)
+		spentDatabase, err := engine.StoreWithDefaultSettings(ParamsDatabase.Spent.Path, false, hivedb.EngineAuto, engine.AllowedEnginesStorageAuto...)
 		if err != nil {
 			return nil, err
 		}
