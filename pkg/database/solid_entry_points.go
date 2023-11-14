@@ -38,9 +38,9 @@ func solidEntryPointsFromBytes(solidEntryPointsBytes []byte) (*SolidEntryPoints,
 
 	var err error
 
-	solidEntryPointsCount := len(solidEntryPointsBytes) / (49 + 4)
+	solidEntryPointsCount := len(solidEntryPointsBytes) / (hornet.HashSize + 4)
 	for i := 0; i < solidEntryPointsCount; i++ {
-		hashBuf := make([]byte, 49)
+		hashBuf := make([]byte, hornet.HashSize)
 		var msIndex milestone.Index
 
 		err = binary.Read(bytesReader, binary.BigEndian, hashBuf)

@@ -6,5 +6,5 @@ import (
 )
 
 func (db *Database) WasAddressSpentFrom(address hornet.Hash) bool {
-	return lo.PanicOnErr(db.spentAddressesStore.Has(address[:49]))
+	return lo.PanicOnErr(db.spentAddressesStore.Has(address[:hornet.HashSize]))
 }

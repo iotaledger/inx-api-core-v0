@@ -17,6 +17,10 @@ const (
 	TransactionMetadataIsHead      = 3
 	TransactionMetadataIsTail      = 4
 	TransactionMetadataIsValue     = 5
+	TransactionMetadataIsMilestone = 6
+
+	// metadata, confirmationIndex, trunkHash, branchHash, bundleHash, milestoneIndex.
+	TransactionMetadataSize = 1 + milestone.IndexByteSize + hornet.HashSize + hornet.HashSize + hornet.HashSize + milestone.IndexByteSize
 )
 
 type TransactionMetadata struct {
@@ -36,6 +40,9 @@ type TransactionMetadata struct {
 
 	// bundleHash is the bundle of the transaction
 	bundleHash hornet.Hash
+
+	// The index of the milestone (in case the transaction is a milestone)
+	milestoneIndex milestone.Index
 }
 
 func NewTransactionMetadata(txHash hornet.Hash) *TransactionMetadata {
@@ -80,36 +87,57 @@ func (m *TransactionMetadata) IsConflicting() bool {
 	return m.metadata.HasBit(TransactionMetadataConflicting)
 }
 
-func (m *TransactionMetadata) SetAdditionalTxInfo(trunkHash hornet.Hash, branchHash hornet.Hash, bundleHash hornet.Hash, isHead bool, isTail bool, isValue bool) {
-	m.trunkHash = trunkHash
-	m.branchHash = branchHash
-	m.bundleHash = bundleHash
-	m.metadata = m.metadata.ModifyBit(TransactionMetadataIsHead, isHead).ModifyBit(TransactionMetadataIsTail, isTail).ModifyBit(TransactionMetadataIsValue, isValue)
+func (m *TransactionMetadata) IsMilestone() bool {
+	return m.metadata.HasBit(TransactionMetadataIsMilestone)
+}
+
+func (m *TransactionMetadata) MilestoneIndex() milestone.Index {
+	return m.milestoneIndex
+}
+
+func (m *TransactionMetadata) Marshal() []byte {
+	/*
+		1 byte   metadata	bitmask
+		4 bytes  uint32 	confirmationIndex
+		49 bytes hash 		trunk
+		49 bytes hash 		branch
+		49 bytes hash 		bundle
+		4 bytes  uint32 	milestoneIndex
+	*/
+
+	hashSize := hornet.HashSize
+	msIndexSize := milestone.IndexByteSize
+
+	value := make([]byte, TransactionMetadataSize)
+	value[0] = byte(m.metadata)
+	binary.LittleEndian.PutUint32(value[1:1+msIndexSize], uint32(m.confirmationIndex))
+	copy(value[1+msIndexSize+0*hashSize:1+msIndexSize+1*hashSize], m.trunkHash)
+	copy(value[1+msIndexSize+1*hashSize:1+msIndexSize+2*hashSize], m.branchHash)
+	copy(value[1+msIndexSize+2*hashSize:1+msIndexSize+3*hashSize], m.bundleHash)
+	binary.LittleEndian.PutUint32(value[1+msIndexSize+3*hashSize:], uint32(m.milestoneIndex))
+
+	return value
 }
 
 func (m *TransactionMetadata) Unmarshal(data []byte) error {
 	/*
-		1 byte  metadata bitmask
-		4 bytes uint32 solidificationTimestamp
-		4 bytes uint32 confirmationIndex
-		4 bytes uint32 youngestRootSnapshotIndex
-		4 bytes uint32 oldestRootSnapshotIndex
-		4 bytes uint32 rootSnapshotCalculationIndex
-		49 bytes hash trunk
-		49 bytes hash branch
-		49 bytes hash bundle
+		1 byte   metadata	bitmask
+		4 bytes  uint32 	confirmationIndex
+		49 bytes hash 		trunk
+		49 bytes hash 		branch
+		49 bytes hash 		bundle
+		4 bytes  uint32 	milestoneIndex
 	*/
 
-	m.metadata = bitmask.BitMask(data[0])
-	m.confirmationIndex = milestone.Index(binary.LittleEndian.Uint32(data[5:9]))
+	hashSize := hornet.HashSize
+	msIndexSize := milestone.IndexByteSize
 
-	if len(data) > 17 {
-		if len(data) == 21+49+49+49 {
-			m.trunkHash = hornet.Hash(data[21 : 21+49])
-			m.branchHash = hornet.Hash(data[21+49 : 21+49+49])
-			m.bundleHash = hornet.Hash(data[21+49+49 : 21+49+49+49])
-		}
-	}
+	m.metadata = bitmask.BitMask(data[0])
+	m.confirmationIndex = milestone.Index(binary.LittleEndian.Uint32(data[1 : 1+msIndexSize]))
+	m.trunkHash = hornet.Hash(data[1+msIndexSize+0*hashSize : 1+msIndexSize+1*hashSize])
+	m.branchHash = hornet.Hash(data[1+msIndexSize+1*hashSize : 1+msIndexSize+2*hashSize])
+	m.bundleHash = hornet.Hash(data[1+msIndexSize+2*hashSize : 1+msIndexSize+3*hashSize])
+	m.milestoneIndex = milestone.Index(binary.LittleEndian.Uint32(data[1+msIndexSize+3*hashSize:]))
 
 	return nil
 }
@@ -131,21 +159,5 @@ func (db *Database) TxMetadataOrNil(txHash hornet.Hash) *TransactionMetadata {
 		panic(err)
 	}
 
-	db.addAdditionalTxInfoToMetadata(txMeta)
-
 	return txMeta
-}
-
-func (db *Database) addAdditionalTxInfoToMetadata(metadata *TransactionMetadata) {
-	trunkHash := metadata.TrunkHash()
-	branchHash := metadata.TrunkHash()
-
-	if len(trunkHash) == 0 || len(branchHash) == 0 {
-		tx := db.TransactionOrNil(metadata.TxHash())
-		if tx == nil {
-			panic(ierrors.Errorf("transaction not found for metadata: %v", metadata.TxHash().Trytes()))
-		}
-
-		metadata.SetAdditionalTxInfo(tx.TrunkHash(), tx.BranchHash(), tx.BundleHash(), tx.IsHead(), tx.IsTail(), tx.IsValue())
-	}
 }

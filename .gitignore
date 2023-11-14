@@ -1,7 +1,7 @@
 .idea
 .DS_Store
 inx-api-core-v0
-/database
+/database*
 
 # IDE related files
 .vscode/

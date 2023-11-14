@@ -7,7 +7,6 @@ import (
 	"github.com/iotaledger/inx-app/pkg/httpserver"
 	"github.com/iotaledger/iota.go/guards"
 
-	"github.com/iotaledger/inx-api-core-v0/pkg/database"
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
 	"github.com/iotaledger/inx-api-core-v0/pkg/milestone"
 )
@@ -66,23 +65,6 @@ func (s *DatabaseServer) transactionMetadata(c echo.Context) (interface{}, error
 		}, nil
 	}
 
-	var milestoneIndex milestone.Index
-	if len(txMeta.BundleHash()) > 0 {
-		s.Database.ForEachBundle(txMeta.BundleHash(), func(bundle *database.Bundle) bool {
-			if bundle.IsMilestone() {
-				milestoneIndex = bundle.MilestoneIndex()
-				return false
-			}
-
-			// check if the request context was already canceled
-			if c.Request().Context().Err() != nil {
-				return false
-			}
-
-			return true
-		})
-	}
-
 	var referencedByMilestoneIndex milestone.Index
 	var milestoneTimestampReferenced uint64
 	confirmed, at := txMeta.ConfirmedWithIndex()
@@ -93,6 +75,11 @@ func (s *DatabaseServer) transactionMetadata(c echo.Context) (interface{}, error
 		if err == nil {
 			milestoneTimestampReferenced = timestamp
 		}
+	}
+
+	var milestoneIndex milestone.Index
+	if txMeta.IsMilestone() {
+		milestoneIndex = txMeta.MilestoneIndex()
 	}
 
 	return &transactionMetadataResponse{

@@ -18,7 +18,7 @@ linters-settings:
         # Size of the block (including return statement that is still "OK")
         # so no return split required.
         # Default: 1
-        block-size: 2
+        block-size: 3
     staticcheck:
         checks: ["all"]
     stylecheck:
