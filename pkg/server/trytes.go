@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
 
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-app/pkg/httpserver"
 	"github.com/iotaledger/iota.go/guards"
 	"github.com/iotaledger/iota.go/transaction"
@@ -16,12 +16,12 @@ import (
 func (s *DatabaseServer) rpcGetTrytes(c echo.Context) (interface{}, error) {
 	request := &GetTrytes{}
 	if err := c.Bind(request); err != nil {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
 	}
 
 	maxResults := s.RestAPILimitsMaxResults
 	if len(request.Hashes) > maxResults {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "too many hashes. maximum allowed: %d", maxResults)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "too many hashes. maximum allowed: %d", maxResults)
 	}
 
 	trytes := []string{}
@@ -29,7 +29,7 @@ func (s *DatabaseServer) rpcGetTrytes(c echo.Context) (interface{}, error) {
 
 	for _, hash := range request.Hashes {
 		if !guards.IsTransactionHash(hash) {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid hash provided: %s", hash)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid hash provided: %s", hash)
 		}
 	}
 
@@ -44,14 +44,14 @@ func (s *DatabaseServer) rpcGetTrytes(c echo.Context) (interface{}, error) {
 
 		txTrytes, err := transaction.TransactionToTrytes(tx.Tx)
 		if err != nil {
-			return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
+			return nil, ierrors.Wrap(echo.ErrInternalServerError, err.Error())
 		}
 
 		trytes = append(trytes, txTrytes)
 
 		txMetadata := s.Database.TxMetadataOrNil(hornet.HashFromHashTrytes(hash))
 		if txMetadata == nil {
-			return nil, errors.WithMessagef(echo.ErrInternalServerError, "metadata not found for hash: %s", hash)
+			return nil, ierrors.Wrapf(echo.ErrInternalServerError, "metadata not found for hash: %s", hash)
 		}
 
 		// unconfirmed transactions have milestone 0
@@ -74,7 +74,7 @@ func (s *DatabaseServer) transaction(c echo.Context) (interface{}, error) {
 
 	tx := s.Database.TransactionOrNil(txHash)
 	if tx == nil {
-		return nil, errors.WithMessagef(echo.ErrNotFound, "transaction not found: %s", txHash.Trytes())
+		return nil, ierrors.Wrapf(echo.ErrNotFound, "transaction not found: %s", txHash.Trytes())
 	}
 
 	return tx.Tx, nil
@@ -88,12 +88,12 @@ func (s *DatabaseServer) transactionTrytes(c echo.Context) (interface{}, error) 
 
 	tx := s.Database.TransactionOrNil(txHash)
 	if tx == nil {
-		return nil, errors.WithMessagef(echo.ErrNotFound, "transaction not found: %s", txHash.Trytes())
+		return nil, ierrors.Wrapf(echo.ErrNotFound, "transaction not found: %s", txHash.Trytes())
 	}
 
 	txTrytes, err := transaction.TransactionToTrytes(tx.Tx)
 	if err != nil {
-		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
+		return nil, ierrors.Wrap(echo.ErrInternalServerError, err.Error())
 	}
 
 	return &transactionTrytesResponse{

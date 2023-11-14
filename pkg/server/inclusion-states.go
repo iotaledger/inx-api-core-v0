@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
 
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-app/pkg/httpserver"
 	"github.com/iotaledger/iota.go/guards"
 
@@ -15,12 +15,12 @@ import (
 func (s *DatabaseServer) rpcGetInclusionStates(c echo.Context) (interface{}, error) {
 	request := &GetInclusionStates{}
 	if err := c.Bind(request); err != nil {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
 	}
 
 	for _, tx := range request.Transactions {
 		if !guards.IsTransactionHash(tx) {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid reference hash provided: %s", tx)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid reference hash provided: %s", tx)
 		}
 	}
 

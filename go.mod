@@ -6,6 +6,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/iotaledger/hive.go/app v0.0.0-20230629181801-64c530ff9d15
 	github.com/iotaledger/hive.go/ds v0.0.0-20230629181801-64c530ff9d15
+	github.com/iotaledger/hive.go/ierrors v0.0.0-20231113110812-4ca2b6cc9a42
 	github.com/iotaledger/hive.go/kvstore v0.0.0-20230629181801-64c530ff9d15
 	github.com/iotaledger/hive.go/lo v0.0.0-20230629181801-64c530ff9d15
 	github.com/iotaledger/inx-app v1.0.0-rc.3.0.20230417173151-cde47df5fe79
@@ -13,7 +14,6 @@ require (
 	github.com/labstack/echo-contrib v0.15.0
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/pangpanglabs/echoswagger/v2 v2.4.1
-	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.16.0
 	go.uber.org/dig v1.17.0
 )
@@ -66,6 +66,7 @@ require (
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/petermattis/goid v0.0.0-20230808133559-b036b712a89b // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.11.1 // indirect

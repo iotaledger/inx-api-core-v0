@@ -2,7 +2,6 @@ package coreapi
 
 import (
 	"context"
-	"errors"
 	"net"
 	"net/http"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"go.uber.org/dig"
 
 	"github.com/iotaledger/hive.go/app"
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-api-core-v0/pkg/daemon"
 	"github.com/iotaledger/inx-api-core-v0/pkg/database"
 	"github.com/iotaledger/inx-api-core-v0/pkg/server"
@@ -101,7 +101,7 @@ func run() error {
 
 		go func() {
 			Component.LogInfof("You can now access the API using: http://%s", ParamsRestAPI.BindAddress)
-			if err := deps.Echo.Start(ParamsRestAPI.BindAddress); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			if err := deps.Echo.Start(ParamsRestAPI.BindAddress); err != nil && !ierrors.Is(err, http.ErrServerClosed) {
 				Component.LogErrorfAndExit("Stopped REST-API server due to an error (%s)", err)
 			}
 		}()

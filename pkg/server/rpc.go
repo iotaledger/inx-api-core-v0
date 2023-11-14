@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
 
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-app/pkg/httpserver"
 )
 
@@ -76,7 +76,7 @@ func rpc(c echo.Context, implementedAPIcalls map[string]rpcEndpoint) (interface{
 		var err error
 		bodyBytes, err = io.ReadAll(c.Request().Body)
 		if err != nil {
-			return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
+			return nil, ierrors.Wrap(echo.ErrInternalServerError, err.Error())
 		}
 	}
 
@@ -84,7 +84,7 @@ func rpc(c echo.Context, implementedAPIcalls map[string]rpcEndpoint) (interface{
 	restoreBody(c, bodyBytes)
 
 	if err := c.Bind(request); err != nil {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
 	}
 
 	// we need to restore the body after reading it
@@ -92,7 +92,7 @@ func rpc(c echo.Context, implementedAPIcalls map[string]rpcEndpoint) (interface{
 
 	implementation, exists := implementedAPIcalls[strings.ToLower(request.Command)]
 	if !exists {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "command is unknown: %s", request.Command)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "command is unknown: %s", request.Command)
 	}
 
 	return implementation(c)

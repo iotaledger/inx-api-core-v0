@@ -1,12 +1,11 @@
 package server
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
 
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-app/pkg/httpserver"
 	"github.com/iotaledger/iota.go/trinary"
 
@@ -29,7 +28,7 @@ func getMilestoneStateDiff[T Container, H Container, B Container](db *database.D
 
 	msBndl := db.MilestoneBundleOrNil(milestoneIndex)
 	if msBndl == nil {
-		return nil, nil, nil, fmt.Errorf("milestone not found: %d", milestoneIndex)
+		return nil, nil, nil, ierrors.Errorf("milestone not found: %d", milestoneIndex)
 	}
 
 	txsToConfirm := make(map[string]struct{})
@@ -57,7 +56,7 @@ func getMilestoneStateDiff[T Container, H Container, B Container](db *database.D
 
 			txMeta := db.TxMetadataOrNil(hornet.Hash(txHash))
 			if txMeta == nil {
-				return nil, nil, nil, fmt.Errorf("getMilestoneStateDiff: transaction not found: %v", hornet.Hash(txHash).Trytes())
+				return nil, nil, nil, ierrors.Errorf("getMilestoneStateDiff: transaction not found: %v", hornet.Hash(txHash).Trytes())
 			}
 
 			confirmed, at := txMeta.ConfirmedWithIndex()
@@ -67,7 +66,7 @@ func getMilestoneStateDiff[T Container, H Container, B Container](db *database.D
 					continue
 				}
 			} else {
-				return nil, nil, nil, fmt.Errorf("getMilestoneStateDiff: transaction not confirmed yet: %v", hornet.Hash(txHash).Trytes())
+				return nil, nil, nil, ierrors.Errorf("getMilestoneStateDiff: transaction not confirmed yet: %v", hornet.Hash(txHash).Trytes())
 			}
 
 			// Mark the approvees to be traversed
@@ -82,13 +81,13 @@ func getMilestoneStateDiff[T Container, H Container, B Container](db *database.D
 			if bndl == nil {
 				txBundle := txMeta.BundleHash()
 
-				return nil, nil, nil, fmt.Errorf("getMilestoneStateDiff: Tx: %v, bundle not found: %v", hornet.Hash(txHash).Trytes(), txBundle.Trytes())
+				return nil, nil, nil, ierrors.Errorf("getMilestoneStateDiff: Tx: %v, bundle not found: %v", hornet.Hash(txHash).Trytes(), txBundle.Trytes())
 			}
 
 			if !bndl.IsValid() {
 				txBundle := txMeta.BundleHash()
 
-				return nil, nil, nil, fmt.Errorf("getMilestoneStateDiff: Tx: %v, bundle not valid: %v", hornet.Hash(txHash).Trytes(), txBundle.Trytes())
+				return nil, nil, nil, ierrors.Errorf("getMilestoneStateDiff: Tx: %v, bundle not valid: %v", hornet.Hash(txHash).Trytes(), txBundle.Trytes())
 			}
 
 			if !bndl.IsValueSpam() {
@@ -127,12 +126,12 @@ func getMilestoneStateDiff[T Container, H Container, B Container](db *database.D
 func (s *DatabaseServer) rpcGetLedgerState(c echo.Context) (interface{}, error) {
 	request := &GetLedgerState{}
 	if err := c.Bind(request); err != nil {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
 	}
 
 	balances, index, err := s.Database.LedgerStateForMilestone(c.Request().Context(), request.TargetIndex)
 	if err != nil {
-		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
+		return nil, ierrors.Wrap(echo.ErrInternalServerError, err.Error())
 	}
 
 	balancesTrytes := make(map[trinary.Trytes]uint64)
@@ -149,18 +148,18 @@ func (s *DatabaseServer) rpcGetLedgerState(c echo.Context) (interface{}, error) 
 func (s *DatabaseServer) rpcGetLedgerDiff(c echo.Context) (interface{}, error) {
 	request := &GetLedgerDiff{}
 	if err := c.Bind(request); err != nil {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
 	}
 
 	smi := s.Database.SolidMilestoneIndex()
 	requestedIndex := request.MilestoneIndex
 	if requestedIndex > smi {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", requestedIndex, smi)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", requestedIndex, smi)
 	}
 
 	diff, err := s.Database.LedgerDiffForMilestone(c.Request().Context(), requestedIndex)
 	if err != nil {
-		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
+		return nil, ierrors.Wrap(echo.ErrInternalServerError, err.Error())
 	}
 
 	diffTrytes := make(map[trinary.Trytes]int64)
@@ -177,13 +176,13 @@ func (s *DatabaseServer) rpcGetLedgerDiff(c echo.Context) (interface{}, error) {
 func (s *DatabaseServer) rpcGetLedgerDiffExt(c echo.Context) (interface{}, error) {
 	request := &GetLedgerDiffExt{}
 	if err := c.Bind(request); err != nil {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
 	}
 
 	smi := s.Database.SolidMilestoneIndex()
 	requestedIndex := request.MilestoneIndex
 	if requestedIndex > smi {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", requestedIndex, smi)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", requestedIndex, smi)
 	}
 
 	newTxWithValue := func(txHash trinary.Hash, address trinary.Hash, index uint64, value int64) *TxWithValue {
@@ -216,7 +215,7 @@ func (s *DatabaseServer) rpcGetLedgerDiffExt(c echo.Context) (interface{}, error
 
 	confirmedTxWithValue, confirmedBundlesWithValue, ledgerChanges, err := getMilestoneStateDiff(s.Database, requestedIndex, newTxWithValue, newTxHashWithValue, newBundleWithValue)
 	if err != nil {
-		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
+		return nil, ierrors.Wrap(echo.ErrInternalServerError, err.Error())
 	}
 
 	ledgerChangesTrytes := make(map[trinary.Trytes]int64)
@@ -236,7 +235,7 @@ func (s *DatabaseServer) rpcGetLedgerDiffExt(c echo.Context) (interface{}, error
 func (s *DatabaseServer) ledgerState(c echo.Context, targetIndex milestone.Index) (interface{}, error) {
 	balances, index, err := s.Database.LedgerStateForMilestone(c.Request().Context(), targetIndex)
 	if err != nil {
-		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
+		return nil, ierrors.Wrap(echo.ErrInternalServerError, err.Error())
 	}
 
 	addressesWithBalances := make(map[trinary.Trytes]string)
@@ -272,12 +271,12 @@ func (s *DatabaseServer) ledgerDiff(c echo.Context) (interface{}, error) {
 
 	smi := s.Database.SolidMilestoneIndex()
 	if msIndex > smi {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", msIndex, smi)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", msIndex, smi)
 	}
 
 	diff, err := s.Database.LedgerDiffForMilestone(c.Request().Context(), msIndex)
 	if err != nil {
-		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
+		return nil, ierrors.Wrap(echo.ErrInternalServerError, err.Error())
 	}
 
 	addressesWithDiffs := make(map[trinary.Trytes]string)
@@ -300,7 +299,7 @@ func (s *DatabaseServer) ledgerDiffExtended(c echo.Context) (interface{}, error)
 
 	smi := s.Database.SolidMilestoneIndex()
 	if msIndex > smi {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", msIndex, smi)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", msIndex, smi)
 	}
 
 	newTxWithValue := func(txHash trinary.Hash, address trinary.Hash, index uint64, value int64) *txWithValue {
@@ -333,7 +332,7 @@ func (s *DatabaseServer) ledgerDiffExtended(c echo.Context) (interface{}, error)
 
 	confirmedTxWithValue, confirmedBundlesWithValue, ledgerChanges, err := getMilestoneStateDiff(s.Database, msIndex, newTxWithValue, newTxHashWithValue, newBundleWithValue)
 	if err != nil {
-		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
+		return nil, ierrors.Wrap(echo.ErrInternalServerError, err.Error())
 	}
 
 	addressesWithDiffs := make(map[trinary.Trytes]string)

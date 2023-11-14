@@ -1,11 +1,9 @@
 package database
 
 import (
-	"fmt"
 	"sync"
 
-	"github.com/pkg/errors"
-
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/hive.go/kvstore"
 	"github.com/iotaledger/inx-api-core-v0/pkg/compressed"
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
@@ -126,8 +124,8 @@ func (db *Database) TransactionOrNil(txHash hornet.Hash) *Transaction {
 
 	data, err := db.txStore.Get(key)
 	if err != nil {
-		if !errors.Is(err, kvstore.ErrKeyNotFound) {
-			panic(fmt.Errorf("failed to get value from database: %w", err))
+		if !ierrors.Is(err, kvstore.ErrKeyNotFound) {
+			panic(ierrors.Errorf("failed to get value from database: %w", err))
 		}
 
 		return nil

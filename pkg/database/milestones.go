@@ -2,10 +2,8 @@ package database
 
 import (
 	"encoding/binary"
-	"fmt"
 
-	"github.com/pkg/errors"
-
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/hive.go/kvstore"
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
 	"github.com/iotaledger/inx-api-core-v0/pkg/milestone"
@@ -39,8 +37,8 @@ func (db *Database) MilestoneOrNil(milestoneIndex milestone.Index) *Milestone {
 
 	data, err := db.milestoneStore.Get(key)
 	if err != nil {
-		if !errors.Is(err, kvstore.ErrKeyNotFound) {
-			panic(fmt.Errorf("failed to get value from database: %w", err))
+		if !ierrors.Is(err, kvstore.ErrKeyNotFound) {
+			panic(ierrors.Errorf("failed to get value from database: %w", err))
 		}
 
 		return nil
@@ -67,12 +65,12 @@ func (db *Database) MilestoneTimestamp(milestoneIndex milestone.Index) (uint64, 
 
 	milestone := db.MilestoneOrNil(milestoneIndex)
 	if milestone == nil {
-		return 0, fmt.Errorf("milestone %d not found", milestoneIndex)
+		return 0, ierrors.Errorf("milestone %d not found", milestoneIndex)
 	}
 
 	tx := db.TransactionOrNil(milestone.Hash)
 	if tx == nil {
-		return 0, fmt.Errorf("milestone %d tail transaction not found", milestoneIndex)
+		return 0, ierrors.Errorf("milestone %d tail transaction not found", milestoneIndex)
 	}
 
 	return tx.Tx.Timestamp, nil
@@ -82,7 +80,7 @@ func (db *Database) LedgerIndex() milestone.Index {
 	db.ledgerMilestoneIndexOnce.Do(func() {
 		value, err := db.ledgerStore.Get([]byte(ledgerMilestoneIndexKey))
 		if err != nil {
-			panic(fmt.Errorf("%w: failed to load ledger milestone index", err))
+			panic(ierrors.Errorf("%w: failed to load ledger milestone index", err))
 		}
 		db.ledgerMilestoneIndex = milestoneIndexFromBytes(value)
 	})
@@ -102,7 +100,7 @@ func (db *Database) LatestSolidMilestoneBundle() *Bundle {
 		latestSolidMilestoneIndex := db.SolidMilestoneIndex()
 		latestSolidMilestoneBundle := db.MilestoneBundleOrNil(latestSolidMilestoneIndex)
 		if latestSolidMilestoneBundle == nil {
-			panic(fmt.Errorf("latest solid milestone bundle not found: %d", latestSolidMilestoneIndex))
+			panic(ierrors.Errorf("latest solid milestone bundle not found: %d", latestSolidMilestoneIndex))
 		}
 		db.latestSolidMilestoneBundle = latestSolidMilestoneBundle
 	})

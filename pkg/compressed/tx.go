@@ -1,8 +1,7 @@
 package compressed
 
 import (
-	"fmt"
-
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/iota.go/consts"
 	"github.com/iotaledger/iota.go/curl"
 	"github.com/iotaledger/iota.go/encoding/t5b1"
@@ -25,7 +24,7 @@ const (
 // Expands a truncated bytes encoded transaction payload.
 func expandTx(data []byte) ([]byte, error) {
 	if len(data) < NonSigTxPartBytesLength {
-		return nil, fmt.Errorf("insufficient tx payload length. minimum: %d, actual: %d", NonSigTxPartBytesLength, len(data))
+		return nil, ierrors.Errorf("insufficient tx payload length. minimum: %d, actual: %d", NonSigTxPartBytesLength, len(data))
 	}
 
 	txDataBytes := make([]byte, TransactionSize)

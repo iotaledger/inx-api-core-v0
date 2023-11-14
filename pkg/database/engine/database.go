@@ -1,8 +1,7 @@
 package engine
 
 import (
-	"fmt"
-
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/hive.go/kvstore"
 	hivedb "github.com/iotaledger/hive.go/kvstore/database"
 	"github.com/iotaledger/hive.go/kvstore/rocksdb"
@@ -46,6 +45,6 @@ func StoreWithDefaultSettings(directory string, createDatabaseIfNotExists bool, 
 		return rocksdb.New(db), nil
 
 	default:
-		return nil, fmt.Errorf("unknown database engine: %s, supported engines: rocksdb", dbEngine)
+		return nil, ierrors.Errorf("unknown database engine: %s, supported engines: rocksdb", dbEngine)
 	}
 }

@@ -1,13 +1,14 @@
+//nolint:goconst
 package server
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pangpanglabs/echoswagger/v2"
 
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-app/pkg/httpserver"
 )
 
@@ -91,7 +92,7 @@ func (s *DatabaseServer) configureRoutes(routeGroup echoswagger.ApiGroup) {
 
 			var statusCode int
 			var message string
-			if errors.As(err, &e) {
+			if ierrors.As(err, &e) {
 				statusCode = e.Code
 				message = fmt.Sprintf("%s, error: %s", e.Message, err)
 			} else {

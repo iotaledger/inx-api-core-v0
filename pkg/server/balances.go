@@ -4,8 +4,8 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
 
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-app/pkg/httpserver"
 	"github.com/iotaledger/iota.go/address"
 
@@ -15,17 +15,17 @@ import (
 func (s *DatabaseServer) rpcGetBalances(c echo.Context) (interface{}, error) {
 	request := &GetBalances{}
 	if err := c.Bind(request); err != nil {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
 	}
 
 	if len(request.Addresses) == 0 {
-		return nil, errors.WithMessage(httpserver.ErrInvalidParameter, "invalid request, error: no addresses provided")
+		return nil, ierrors.Wrap(httpserver.ErrInvalidParameter, "invalid request, error: no addresses provided")
 	}
 
 	for _, addr := range request.Addresses {
 		// Check if address is valid
 		if err := address.ValidAddress(addr); err != nil {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid address hash provided: %s", addr)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid address hash provided: %s", addr)
 		}
 	}
 
@@ -35,7 +35,7 @@ func (s *DatabaseServer) rpcGetBalances(c echo.Context) (interface{}, error) {
 
 		balance, _, err := s.Database.BalanceForAddress(hornet.HashFromAddressTrytes(addr[:81]))
 		if err != nil {
-			return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
+			return nil, ierrors.Wrap(echo.ErrInternalServerError, err.Error())
 		}
 
 		// Address balance
@@ -59,7 +59,7 @@ func (s *DatabaseServer) addressBalance(c echo.Context) (interface{}, error) {
 
 	balance, _, err := s.Database.BalanceForAddress(addr)
 	if err != nil {
-		return nil, errors.WithMessage(echo.ErrInternalServerError, err.Error())
+		return nil, ierrors.Wrap(echo.ErrInternalServerError, err.Error())
 	}
 
 	return &balanceResponse{

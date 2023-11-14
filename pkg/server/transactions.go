@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
 
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-app/pkg/httpserver"
 	"github.com/iotaledger/iota.go/address"
 	"github.com/iotaledger/iota.go/guards"
@@ -125,7 +125,7 @@ func (s *DatabaseServer) findTransactions(maxResults int, valueOnly bool, queryB
 func (s *DatabaseServer) rpcFindTransactions(c echo.Context) (interface{}, error) {
 	request := &FindTransactions{}
 	if err := c.Bind(request); err != nil {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
 	}
 
 	maxResults := s.RestAPILimitsMaxResults
@@ -134,7 +134,7 @@ func (s *DatabaseServer) rpcFindTransactions(c echo.Context) (interface{}, error
 	}
 
 	if len(request.Bundles) == 0 && len(request.Addresses) == 0 && len(request.Approvees) == 0 && len(request.Tags) == 0 {
-		return nil, errors.WithMessage(httpserver.ErrInvalidParameter, "no search criteria was given")
+		return nil, ierrors.Wrap(httpserver.ErrInvalidParameter, "no search criteria was given")
 	}
 
 	queryBundleHashes := make(map[string]struct{})
@@ -145,31 +145,31 @@ func (s *DatabaseServer) rpcFindTransactions(c echo.Context) (interface{}, error
 	// check all queries first
 	for _, bundleTrytes := range request.Bundles {
 		if !guards.IsTransactionHash(bundleTrytes) {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid bundle hash provided: %s", bundleTrytes)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid bundle hash provided: %s", bundleTrytes)
 		}
 		queryBundleHashes[string(hornet.HashFromHashTrytes(bundleTrytes))] = struct{}{}
 	}
 
 	for _, approveeTrytes := range request.Approvees {
 		if !guards.IsTransactionHash(approveeTrytes) {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid aprovee hash provided: %s", approveeTrytes)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid aprovee hash provided: %s", approveeTrytes)
 		}
 		queryApproveeHashes[string(hornet.HashFromHashTrytes(approveeTrytes))] = struct{}{}
 	}
 
 	for _, addressTrytes := range request.Addresses {
 		if err := address.ValidAddress(addressTrytes); err != nil {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid address hash provided: %s", addressTrytes)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid address hash provided: %s", addressTrytes)
 		}
 		queryAddressHashes[string(hornet.HashFromAddressTrytes(addressTrytes[:81]))] = struct{}{}
 	}
 
 	for _, tagTrytes := range request.Tags {
 		if err := trinary.ValidTrytes(tagTrytes); err != nil {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid tag trytes provided: %s", tagTrytes)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid tag trytes provided: %s", tagTrytes)
 		}
 		if len(tagTrytes) > 27 {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid tag length: %s", tagTrytes)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid tag length: %s", tagTrytes)
 		}
 		if len(tagTrytes) < 27 {
 			tagTrytes = trinary.MustPad(tagTrytes, 27)
@@ -217,7 +217,7 @@ func (s *DatabaseServer) transactions(c echo.Context) (interface{}, error) {
 	}
 
 	if requestBundleHash == nil && requestApproveeHash == nil && requestAddressHash == nil && requestTagHash == nil {
-		return nil, errors.WithMessage(httpserver.ErrInvalidParameter, "no search criteria was given")
+		return nil, ierrors.Wrap(httpserver.ErrInvalidParameter, "no search criteria was given")
 	}
 
 	queryBundleHashes := make(map[string]struct{})

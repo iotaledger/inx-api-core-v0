@@ -3,8 +3,8 @@ package database
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
 	"github.com/iotaledger/inx-api-core-v0/pkg/milestone"
 )
@@ -45,12 +45,12 @@ func solidEntryPointsFromBytes(solidEntryPointsBytes []byte) (*SolidEntryPoints,
 
 		err = binary.Read(bytesReader, binary.BigEndian, hashBuf)
 		if err != nil {
-			return nil, fmt.Errorf("solidEntryPoints: %w", err)
+			return nil, ierrors.Errorf("solidEntryPoints: %w", err)
 		}
 
 		err = binary.Read(bytesReader, binary.BigEndian, &msIndex)
 		if err != nil {
-			return nil, fmt.Errorf("solidEntryPoints: %w", err)
+			return nil, ierrors.Errorf("solidEntryPoints: %w", err)
 		}
 
 		s.Add(hornet.Hash(hashBuf), msIndex)
@@ -62,12 +62,12 @@ func solidEntryPointsFromBytes(solidEntryPointsBytes []byte) (*SolidEntryPoints,
 func (db *Database) readSolidEntryPoints() (*SolidEntryPoints, error) {
 	value, err := db.snapshotStore.Get([]byte("solidEntryPoints"))
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to retrieve solid entry points", err)
+		return nil, ierrors.Errorf("%w: failed to retrieve solid entry points", err)
 	}
 
 	points, err := solidEntryPointsFromBytes(value)
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to convert solid entry points", err)
+		return nil, ierrors.Errorf("%w: failed to convert solid entry points", err)
 	}
 
 	return points, nil
