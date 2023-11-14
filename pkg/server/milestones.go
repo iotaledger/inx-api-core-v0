@@ -1,11 +1,9 @@
 package server
 
 import (
-	"fmt"
-
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
 
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-api-core-v0/pkg/milestone"
 	"github.com/iotaledger/inx-app/pkg/httpserver"
 )
@@ -19,12 +17,12 @@ func (s *DatabaseServer) milestone(c echo.Context) (interface{}, error) {
 
 	smi := s.Database.SolidMilestoneIndex()
 	if msIndex > smi {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", msIndex, smi)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid milestone index: %d, lsmi is %d", msIndex, smi)
 	}
 
 	msBndl := s.Database.MilestoneBundleOrNil(msIndex)
 	if msBndl == nil {
-		return nil, fmt.Errorf("milestone not found: %d", msIndex)
+		return nil, ierrors.Errorf("milestone not found: %d", msIndex)
 	}
 
 	return milestoneResponse{

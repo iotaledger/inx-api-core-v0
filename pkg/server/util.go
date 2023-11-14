@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
 
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
 	"github.com/iotaledger/inx-app/pkg/httpserver"
 	"github.com/iotaledger/iota.go/address"
@@ -26,7 +26,7 @@ func parseAddressParam(c echo.Context) (hornet.Hash, error) {
 
 	// Check if address is valid
 	if err := address.ValidAddress(addr); err != nil {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid address hash provided: %s, error: %s", addr, err)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid address hash provided: %s, error: %s", addr, err)
 	}
 
 	return hornet.HashFromAddressTrytes(addr[:81]), nil
@@ -36,7 +36,7 @@ func parseTransactionHashParam(c echo.Context) (hornet.Hash, error) {
 	txHash := strings.ToUpper(c.Param(ParameterTransactionHash))
 
 	if !guards.IsTransactionHash(txHash) {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid transaction hash provided: %s", txHash)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid transaction hash provided: %s", txHash)
 	}
 
 	return hornet.HashFromHashTrytes(txHash), nil
@@ -47,7 +47,7 @@ func parseBundleQueryParam(c echo.Context) (hornet.Hash, error) {
 
 	if len(value) > 0 {
 		if !guards.IsTransactionHash(value) {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid bundle hash provided: %s", value)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid bundle hash provided: %s", value)
 		}
 
 		return hornet.HashFromHashTrytes(value), nil
@@ -61,7 +61,7 @@ func parseApproveeQueryParam(c echo.Context) (hornet.Hash, error) {
 
 	if len(value) > 0 {
 		if !guards.IsTransactionHash(value) {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid approvee hash provided: %s", value)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid approvee hash provided: %s", value)
 		}
 
 		return hornet.HashFromHashTrytes(value), nil
@@ -76,7 +76,7 @@ func parseAddressQueryParam(c echo.Context) (hornet.Hash, error) {
 	if len(value) > 0 {
 		// Check if address is valid
 		if err := address.ValidAddress(value); err != nil {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid address hash provided: %s, error: %s", value, err)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid address hash provided: %s, error: %s", value, err)
 		}
 
 		return hornet.HashFromAddressTrytes(value[:81]), nil
@@ -90,10 +90,10 @@ func parseTagQueryParam(c echo.Context) (hornet.Hash, error) {
 
 	if len(value) > 0 {
 		if err := trinary.ValidTrytes(value); err != nil {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid tag trytes provided: %s", value)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid tag trytes provided: %s", value)
 		}
 		if len(value) > 27 {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid tag length: %s", value)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid tag length: %s", value)
 		}
 		if len(value) < 27 {
 			value = trinary.MustPad(value, 27)
@@ -111,7 +111,7 @@ func parseMaxResultsQueryParam(c echo.Context, maxResults int) (int, error) {
 	if len(value) > 0 {
 		requestMaxResults, err := strconv.ParseInt(value, 10, 32)
 		if err != nil {
-			return 0, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid %s, error: %s", QueryParameterMaxResults, err)
+			return 0, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid %s, error: %s", QueryParameterMaxResults, err)
 		}
 
 		if (requestMaxResults > 0) && (int(requestMaxResults) < maxResults) {

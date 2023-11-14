@@ -2,11 +2,9 @@ package database
 
 import (
 	"encoding/binary"
-	"fmt"
-
-	"github.com/pkg/errors"
 
 	"github.com/iotaledger/hive.go/ds/bitmask"
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/hive.go/kvstore"
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
 	"github.com/iotaledger/inx-api-core-v0/pkg/milestone"
@@ -121,8 +119,8 @@ func (db *Database) TxMetadataOrNil(txHash hornet.Hash) *TransactionMetadata {
 
 	data, err := db.metadataStore.Get(key)
 	if err != nil {
-		if !errors.Is(err, kvstore.ErrKeyNotFound) {
-			panic(fmt.Errorf("failed to get value from database: %w", err))
+		if !ierrors.Is(err, kvstore.ErrKeyNotFound) {
+			panic(ierrors.Errorf("failed to get value from database: %w", err))
 		}
 
 		return nil
@@ -145,7 +143,7 @@ func (db *Database) addAdditionalTxInfoToMetadata(metadata *TransactionMetadata)
 	if len(trunkHash) == 0 || len(branchHash) == 0 {
 		tx := db.TransactionOrNil(metadata.TxHash())
 		if tx == nil {
-			panic(fmt.Sprintf("transaction not found for metadata: %v", metadata.TxHash().Trytes()))
+			panic(ierrors.Errorf("transaction not found for metadata: %v", metadata.TxHash().Trytes()))
 		}
 
 		metadata.SetAdditionalTxInfo(tx.TrunkHash(), tx.BranchHash(), tx.BundleHash(), tx.IsHead(), tx.IsTail(), tx.IsValue())

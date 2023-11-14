@@ -2,13 +2,11 @@ package database
 
 import (
 	"encoding/binary"
-	"fmt"
 	"log"
 	"sync"
 
-	"github.com/pkg/errors"
-
 	"github.com/iotaledger/hive.go/ds/bitmask"
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/hive.go/kvstore"
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
 	"github.com/iotaledger/inx-api-core-v0/pkg/milestone"
@@ -183,8 +181,8 @@ func (db *Database) BundleOrNil(tailTxHash hornet.Hash) *Bundle {
 
 	data, err := db.bundleStore.Get(key)
 	if err != nil {
-		if !errors.Is(err, kvstore.ErrKeyNotFound) {
-			panic(fmt.Errorf("failed to get value from database: %w", err))
+		if !ierrors.Is(err, kvstore.ErrKeyNotFound) {
+			panic(ierrors.Errorf("failed to get value from database: %w", err))
 		}
 
 		return nil

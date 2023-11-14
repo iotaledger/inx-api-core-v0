@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/pkg/errors"
 	"go.uber.org/dig"
 
 	"github.com/iotaledger/hive.go/app"
 	"github.com/iotaledger/hive.go/app/shutdown"
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-api-core-v0/pkg/daemon"
 	"github.com/iotaledger/inx-api-core-v0/pkg/server"
 	"github.com/iotaledger/inx-app/pkg/nodebridge"
@@ -67,7 +67,7 @@ func run() error {
 		deps.NodeBridge.Run(ctx)
 		Component.LogInfo("Stopped NodeBridge")
 
-		if !errors.Is(ctx.Err(), context.Canceled) {
+		if !ierrors.Is(ctx.Err(), context.Canceled) {
 			deps.ShutdownHandler.SelfShutdown("INX connection to node dropped", true)
 		}
 	}, daemon.PriorityDisconnectINX); err != nil {

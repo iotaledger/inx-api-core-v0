@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/iotaledger/hive.go/ds/bitmask"
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
 	"github.com/iotaledger/inx-api-core-v0/pkg/milestone"
 )
@@ -27,12 +28,12 @@ type SnapshotInfo struct {
 func (db *Database) readSnapshotInfo() (*SnapshotInfo, error) {
 	value, err := db.snapshotStore.Get([]byte("snapshotInfo"))
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to retrieve snapshot info", err)
+		return nil, ierrors.Errorf("%w: failed to retrieve snapshot info", err)
 	}
 
 	info, err := snapshotInfoFromBytes(value)
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to convert snapshot info", err)
+		return nil, ierrors.Errorf("%w: failed to convert snapshot info", err)
 	}
 
 	return info, nil
@@ -61,7 +62,7 @@ func (db *Database) loadSnapshotInfo() error {
 func snapshotInfoFromBytes(bytes []byte) (*SnapshotInfo, error) {
 
 	if len(bytes) != 119 {
-		return nil, fmt.Errorf("parsing of snapshot info failed, error: invalid length %d != 119", len(bytes))
+		return nil, ierrors.Errorf("parsing of snapshot info failed, error: invalid length %d != 119", len(bytes))
 	}
 
 	cooAddr := hornet.Hash(bytes[:49])

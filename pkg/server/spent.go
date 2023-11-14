@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
 
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/inx-app/pkg/httpserver"
 	"github.com/iotaledger/iota.go/address"
 
@@ -13,18 +13,18 @@ import (
 func (s *DatabaseServer) rpcWereAddressesSpentFrom(c echo.Context) (interface{}, error) {
 	request := &WereAddressesSpentFrom{}
 	if err := c.Bind(request); err != nil {
-		return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
+		return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid request, error: %s", err)
 	}
 
 	if len(request.Addresses) == 0 {
-		return nil, errors.WithMessage(httpserver.ErrInvalidParameter, "invalid request, error: no addresses provided")
+		return nil, ierrors.Wrap(httpserver.ErrInvalidParameter, "invalid request, error: no addresses provided")
 	}
 
 	result := &WereAddressesSpentFromResponse{}
 
 	for _, addr := range request.Addresses {
 		if err := address.ValidAddress(addr); err != nil {
-			return nil, errors.WithMessagef(httpserver.ErrInvalidParameter, "invalid address hash provided: %s", addr)
+			return nil, ierrors.Wrapf(httpserver.ErrInvalidParameter, "invalid address hash provided: %s", addr)
 		}
 
 		// State

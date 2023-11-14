@@ -5,8 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/pkg/errors"
-
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/hive.go/kvstore"
 	"github.com/iotaledger/inx-api-core-v0/pkg/hornet"
 	"github.com/iotaledger/inx-api-core-v0/pkg/milestone"
@@ -37,8 +36,8 @@ func (db *Database) BalanceForAddress(address hornet.Hash) (uint64, milestone.In
 
 	value, err := db.ledgerBalanceStore.Get(databaseKeyForAddress(address))
 	if err != nil {
-		if !errors.Is(err, kvstore.ErrKeyNotFound) {
-			return 0, db.LedgerIndex(), fmt.Errorf("%w: failed to retrieve balance", err)
+		if !ierrors.Is(err, kvstore.ErrKeyNotFound) {
+			return 0, db.LedgerIndex(), ierrors.Errorf("%w: failed to retrieve balance", err)
 		}
 
 		return 0, db.LedgerIndex(), nil
@@ -52,11 +51,11 @@ func (db *Database) LedgerDiffForMilestone(ctx context.Context, targetIndex mile
 
 	solidMilestoneIndex := db.SolidMilestoneIndex()
 	if targetIndex > solidMilestoneIndex {
-		return nil, fmt.Errorf("target index is too new. maximum: %d, actual: %d", solidMilestoneIndex, targetIndex)
+		return nil, ierrors.Errorf("target index is too new. maximum: %d, actual: %d", solidMilestoneIndex, targetIndex)
 	}
 
 	if targetIndex <= db.snapshot.PruningIndex {
-		return nil, fmt.Errorf("target index is too old. minimum: %d, actual: %d", db.snapshot.PruningIndex+1, targetIndex)
+		return nil, ierrors.Errorf("target index is too old. minimum: %d, actual: %d", db.snapshot.PruningIndex+1, targetIndex)
 	}
 
 	diff := make(map[string]int64)
@@ -106,35 +105,35 @@ func (db *Database) LedgerStateForMilestone(ctx context.Context, targetIndex mil
 	}
 
 	if targetIndex > solidMilestoneIndex {
-		return nil, 0, fmt.Errorf("target index is too new. maximum: %d, actual: %d", solidMilestoneIndex, targetIndex)
+		return nil, 0, ierrors.Errorf("target index is too new. maximum: %d, actual: %d", solidMilestoneIndex, targetIndex)
 	}
 
 	if targetIndex <= db.snapshot.PruningIndex {
-		return nil, 0, fmt.Errorf("target index is too old. minimum: %d, actual: %d", db.snapshot.PruningIndex+1, targetIndex)
+		return nil, 0, ierrors.Errorf("target index is too old. minimum: %d, actual: %d", db.snapshot.PruningIndex+1, targetIndex)
 	}
 
 	balances, ledgerMilestone, err := db.LedgerStateForLSMI(ctx)
 	if err != nil {
-		if errors.Is(err, ErrOperationAborted) {
+		if ierrors.Is(err, ErrOperationAborted) {
 			return nil, 0, err
 		}
 
-		return nil, 0, fmt.Errorf("ledgerStateForLSMI failed! %w", err)
+		return nil, 0, ierrors.Errorf("ledgerStateForLSMI failed! %w", err)
 	}
 
 	if ledgerMilestone != solidMilestoneIndex {
-		return nil, 0, fmt.Errorf("ledgerMilestone wrong! %d/%d", ledgerMilestone, solidMilestoneIndex)
+		return nil, 0, ierrors.Errorf("ledgerMilestone wrong! %d/%d", ledgerMilestone, solidMilestoneIndex)
 	}
 
 	// Calculate balances for targetIndex
 	for milestoneIndex := solidMilestoneIndex; milestoneIndex > targetIndex; milestoneIndex-- {
 		diff, err := db.LedgerDiffForMilestone(ctx, milestoneIndex)
 		if err != nil {
-			if errors.Is(err, ErrOperationAborted) {
+			if ierrors.Is(err, ErrOperationAborted) {
 				return nil, 0, err
 			}
 
-			return nil, 0, fmt.Errorf("ledgerDiffForMilestone: %w", err)
+			return nil, 0, ierrors.Errorf("ledgerDiffForMilestone: %w", err)
 		}
 
 		for address, change := range diff {
@@ -148,7 +147,7 @@ func (db *Database) LedgerStateForMilestone(ctx context.Context, targetIndex mil
 
 			switch {
 			case newBalance < 0:
-				return nil, 0, fmt.Errorf("ledger diff for milestone %d creates negative balance for address %s: current %d, diff %d", milestoneIndex, hornet.Hash(address).Trytes(), balances[address], change)
+				return nil, 0, ierrors.Errorf("ledger diff for milestone %d creates negative balance for address %s: current %d, diff %d", milestoneIndex, hornet.Hash(address).Trytes(), balances[address], change)
 			case newBalance == 0:
 				delete(balances, address)
 			default:

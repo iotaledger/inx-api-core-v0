@@ -1,11 +1,9 @@
 package database
 
 import (
-	"fmt"
 	"sync"
 
-	"github.com/pkg/errors"
-
+	"github.com/iotaledger/hive.go/ierrors"
 	"github.com/iotaledger/hive.go/kvstore"
 	"github.com/iotaledger/hive.go/lo"
 	"github.com/iotaledger/inx-api-core-v0/pkg/milestone"
@@ -39,7 +37,7 @@ const (
 
 var (
 	// ErrOperationAborted is returned when the operation was aborted e.g. by a shutdown signal.
-	ErrOperationAborted = errors.New("operation was aborted")
+	ErrOperationAborted = ierrors.New("operation was aborted")
 )
 
 type Database struct {
@@ -89,11 +87,11 @@ func New(tangleDatabase, snapshotDatabase, spentDatabase kvstore.KVStore, skipHe
 		}
 
 		if lo.PanicOnErr(healthTracker.IsCorrupted()) {
-			return errors.New("database is corrupted")
+			return ierrors.New("database is corrupted")
 		}
 
 		if lo.PanicOnErr(healthTracker.IsTainted()) {
-			return errors.New("database is tainted")
+			return ierrors.New("database is tainted")
 		}
 
 		return nil
@@ -101,13 +99,13 @@ func New(tangleDatabase, snapshotDatabase, spentDatabase kvstore.KVStore, skipHe
 
 	if !skipHealthCheck {
 		if err := checkDatabaseHealth(tangleDatabase); err != nil {
-			return nil, fmt.Errorf("opening tangle database failed: %w", err)
+			return nil, ierrors.Errorf("opening tangle database failed: %w", err)
 		}
 		if err := checkDatabaseHealth(snapshotDatabase); err != nil {
-			return nil, fmt.Errorf("opening snapshot database failed: %w", err)
+			return nil, ierrors.Errorf("opening snapshot database failed: %w", err)
 		}
 		if err := checkDatabaseHealth(spentDatabase); err != nil {
-			return nil, fmt.Errorf("opening spent database failed: %w", err)
+			return nil, ierrors.Errorf("opening spent database failed: %w", err)
 		}
 	}
 
