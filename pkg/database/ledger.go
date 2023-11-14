@@ -17,7 +17,7 @@ const (
 )
 
 func databaseKeyForAddress(address hornet.Hash) []byte {
-	return address[:49]
+	return address[:hornet.HashSize]
 }
 
 func balanceFromBytes(bytes []byte) uint64 {
@@ -72,7 +72,7 @@ func (db *Database) LedgerDiffForMilestone(ctx context.Context, targetIndex mile
 		default:
 		}
 		// Remove prefix from key
-		diff[string(key[len(keyPrefix):len(keyPrefix)+49])] = diffFromBytes(value)
+		diff[string(key[len(keyPrefix):len(keyPrefix)+hornet.HashSize])] = diffFromBytes(value)
 
 		return true
 	})
@@ -174,7 +174,7 @@ func (db *Database) LedgerStateForLSMI(ctx context.Context) (map[string]uint64, 
 		default:
 		}
 
-		balances[string(key[:49])] = balanceFromBytes(value)
+		balances[string(key[:hornet.HashSize])] = balanceFromBytes(value)
 
 		return true
 	})

@@ -17,6 +17,7 @@ const (
 	addressTrytesSize = hashTrytesSize + consts.AddressChecksumTrytesSize/consts.TritsPerTryte
 	hashTrytesSize    = consts.HashTrytesSize
 	tagTrytesSize     = consts.TagTrinarySize / consts.TritsPerTryte
+	HashSize          = 49
 )
 
 // Hash is the binary representation of a trinary Hash.

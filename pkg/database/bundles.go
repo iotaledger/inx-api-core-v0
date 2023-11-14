@@ -20,7 +20,7 @@ func databaseKeyForBundle(tailTxHash hornet.Hash) []byte {
 func bundleFactory(db *Database, key []byte, data []byte) (*Bundle, error) {
 	bndl := &Bundle{
 		db:     db,
-		tailTx: key[:49],
+		tailTx: key[:hornet.HashSize],
 		txs:    make(map[string]struct{}),
 	}
 
@@ -84,8 +84,8 @@ func (bundle *Bundle) Unmarshal(data []byte) error {
 
 	offset := 123
 	for i := 0; i < txCount; i++ {
-		bundle.txs[string(data[offset:offset+49])] = struct{}{}
-		offset += 49
+		bundle.txs[string(data[offset:offset+hornet.HashSize])] = struct{}{}
+		offset += hornet.HashSize
 	}
 
 	if ledgerChangesCount > 0 {
@@ -93,8 +93,8 @@ func (bundle *Bundle) Unmarshal(data []byte) error {
 	}
 
 	for i := 0; i < ledgerChangesCount; i++ {
-		address := data[offset : offset+49]
-		offset += 49
+		address := data[offset : offset+hornet.HashSize]
+		offset += hornet.HashSize
 		balance := int64(binary.LittleEndian.Uint64(data[offset : offset+8]))
 		offset += 8
 		bundle.ledgerChanges[string(address)] = balance
@@ -194,16 +194,4 @@ func (db *Database) BundleOrNil(tailTxHash hornet.Hash) *Bundle {
 	}
 
 	return bundle
-}
-
-// ForEachBundle loops over all existing bundle instances for that bundle hash.
-func (db *Database) ForEachBundle(bundleHash hornet.Hash, consumer func(*Bundle) bool, maxFind ...int) {
-	db.ForEachBundleTailTransactionHash(bundleHash, func(txTailHash hornet.Hash) bool {
-		bndl := db.BundleOrNil(txTailHash) // bundle +1
-		if bndl == nil {
-			return true
-		}
-
-		return consumer(bndl)
-	}, maxFind...)
 }

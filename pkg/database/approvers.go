@@ -15,7 +15,7 @@ func (db *Database) ApproverHashes(txHash hornet.Hash, maxFind ...int) hornet.Ha
 			return false
 		}
 
-		approverHashes = append(approverHashes, key[49:98])
+		approverHashes = append(approverHashes, key[hornet.HashSize:2*hornet.HashSize])
 
 		return true
 	})

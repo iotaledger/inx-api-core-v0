@@ -100,7 +100,7 @@ func (tx *Transaction) Unmarshal(data []byte) error {
 }
 
 func transactionFactory(key []byte, data []byte) (*Transaction, error) {
-	tx := NewTransaction(key[:49])
+	tx := NewTransaction(key[:hornet.HashSize])
 
 	if err := tx.Unmarshal(data); err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func transactionFactory(key []byte, data []byte) (*Transaction, error) {
 }
 
 func metadataFactory(key []byte, data []byte) (*TransactionMetadata, error) {
-	txMeta := NewTransactionMetadata(key[:49])
+	txMeta := NewTransactionMetadata(key[:hornet.HashSize])
 
 	if err := txMeta.Unmarshal(data); err != nil {
 		return nil, err

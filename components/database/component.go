@@ -8,14 +8,8 @@ import (
 
 	"github.com/iotaledger/hive.go/app"
 	"github.com/iotaledger/hive.go/app/shutdown"
-	hivedb "github.com/iotaledger/hive.go/kvstore/database"
 	"github.com/iotaledger/inx-api-core-v0/pkg/daemon"
 	"github.com/iotaledger/inx-api-core-v0/pkg/database"
-	"github.com/iotaledger/inx-api-core-v0/pkg/database/engine"
-)
-
-const (
-	DBVersion uint32 = 2
 )
 
 func init() {
@@ -45,22 +39,13 @@ func provide(c *dig.Container) error {
 		Component.LogInfo("Setting up database ...")
 		defer Component.LogInfo("Setting up database ... done!")
 
-		tangleDatabase, err := engine.StoreWithDefaultSettings(ParamsDatabase.Tangle.Path, false, hivedb.EngineAuto, engine.AllowedEnginesStorageAuto...)
-		if err != nil {
-			return nil, err
-		}
-
-		snapshotDatabase, err := engine.StoreWithDefaultSettings(ParamsDatabase.Snapshot.Path, false, hivedb.EngineAuto, engine.AllowedEnginesStorageAuto...)
-		if err != nil {
-			return nil, err
-		}
-
-		spentDatabase, err := engine.StoreWithDefaultSettings(ParamsDatabase.Spent.Path, false, hivedb.EngineAuto, engine.AllowedEnginesStorageAuto...)
-		if err != nil {
-			return nil, err
-		}
-
-		return database.New(tangleDatabase, snapshotDatabase, spentDatabase, ParamsDatabase.Debug)
+		return database.New(
+			Component.Daemon().ContextStopped(),
+			Component.Logger(),
+			ParamsDatabase.Tangle.Path,
+			ParamsDatabase.Snapshot.Path,
+			ParamsDatabase.Spent.Path,
+			ParamsDatabase.Debug)
 	})
 }
 

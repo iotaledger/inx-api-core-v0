@@ -23,7 +23,7 @@ func milestoneIndexFromDatabaseKey(key []byte) milestone.Index {
 func milestoneFactory(key []byte, data []byte) *Milestone {
 	return &Milestone{
 		Index: milestoneIndexFromDatabaseKey(key),
-		Hash:  hornet.Hash(data[:49]),
+		Hash:  hornet.Hash(data[:hornet.HashSize]),
 	}
 }
 

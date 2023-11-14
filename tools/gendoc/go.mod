@@ -35,11 +35,13 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/holiman/uint256 v1.2.3 // indirect
 	github.com/iancoleman/orderedmap v0.3.0 // indirect
 	github.com/iotaledger/grocksdb v1.7.5-0.20230220105546-5162e18885c7 // indirect
 	github.com/iotaledger/hive.go/constraints v0.0.0-20230629181801-64c530ff9d15 // indirect
 	github.com/iotaledger/hive.go/ds v0.0.0-20230629181801-64c530ff9d15 // indirect
+	github.com/iotaledger/hive.go/ierrors v0.0.0-20231113110812-4ca2b6cc9a42 // indirect
 	github.com/iotaledger/hive.go/kvstore v0.0.0-20230629181801-64c530ff9d15 // indirect
 	github.com/iotaledger/hive.go/lo v0.0.0-20230629181801-64c530ff9d15 // indirect
 	github.com/iotaledger/hive.go/logger v0.0.0-20230629181801-64c530ff9d15 // indirect

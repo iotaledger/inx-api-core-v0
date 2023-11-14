@@ -65,9 +65,9 @@ func snapshotInfoFromBytes(bytes []byte) (*SnapshotInfo, error) {
 		return nil, ierrors.Errorf("parsing of snapshot info failed, error: invalid length %d != 119", len(bytes))
 	}
 
-	cooAddr := hornet.Hash(bytes[:49])
-	hash := hornet.Hash(bytes[49:98])
-	snapshotIndex := binary.LittleEndian.Uint32(bytes[98:102])
+	cooAddr := hornet.Hash(bytes[:hornet.HashSize])
+	hash := hornet.Hash(bytes[hornet.HashSize : 2*hornet.HashSize])
+	snapshotIndex := binary.LittleEndian.Uint32(bytes[2*hornet.HashSize : 102])
 	entryPointIndex := binary.LittleEndian.Uint32(bytes[102:106])
 	pruningIndex := binary.LittleEndian.Uint32(bytes[106:110])
 	timestamp := int64(binary.LittleEndian.Uint64(bytes[110:118]))
